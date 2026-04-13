@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "SportsPrognose",
+    "slug": "sportsprognose",
+    "version": "1.0.0",
+    "scheme": "sportsprognose",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0e1a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sportsprognose.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0e1a"
+      },
+      "package": "com.sportsprognose.app"
+    },
+    "plugins": ["expo-router"]
+  }
+}
