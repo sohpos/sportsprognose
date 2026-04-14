@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LanguageSelector } from './LanguageSelector';
 
 const links = [
   { href: '/', label: 'Dashboard' },
@@ -43,9 +44,12 @@ export default function NavBar() {
           ))}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 text-xs text-slate-500">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-          <span>Poisson-Modell aktiv</span>
+        <div className="ml-auto flex items-center gap-4">
+          <LanguageSelector />
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+            <span>Poisson-Modell aktiv</span>
+          </div>
         </div>
       </div>
     </nav>
