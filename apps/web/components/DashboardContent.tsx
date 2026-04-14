@@ -13,7 +13,7 @@ export default function DashboardContent() {
   useEffect(() => {
     setMounted(true);
     
-    fetch('/api/matches')
+    fetch('http://localhost:3002/api/matches')
       .then(r => r.json())
       .then(data => {
         setMatches(data.matches?.slice(0, 6) || []);
