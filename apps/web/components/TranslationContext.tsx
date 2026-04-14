@@ -43,7 +43,7 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
       setIsInitialized(true);
     });
     
-    // Subscribe for dynamic language changes without restart
+    // Subscribe for dynamic language changes
     const unsubscribe = localeManager.subscribe(() => {
       setLocaleState(localeManager.locale);
       forceUpdate(n => n + 1);
@@ -52,10 +52,17 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     return unsubscribe;
   }, []);
 
-  // 2. Dynamic language switching
+  // 2. Dynamic language switching - simple direct update
   const handleSetLocale = useCallback(async (newLocale: Locale) => {
-    await localeManager.setLocale(newLocale);
+    console.log('Changing locale to:', newLocale);
+    // Directly update state first for immediate feedback
     setLocaleState(newLocale);
+    // Also try to update localeManager
+    try {
+      await localeManager.setLocale(newLocale);
+    } catch (e) {
+      console.error('setLocale failed:', e);
+    }
   }, []);
 
   const value: TranslationContextValue = {
