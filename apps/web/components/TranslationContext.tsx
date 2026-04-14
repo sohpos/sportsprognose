@@ -105,9 +105,15 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 
   // Load saved locale on mount
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Locale;
-    if (saved && saved in SUPPORTED_LOCALES) {
+    // FIRST: Check localStorage directly
+    const saved = localStorage.getItem(STORAGE_KEY);
+    console.log('TranslationContext: localStorage shows:', saved);
+    
+    if (saved && saved in translations) {
       setLocale(saved);
+      console.log('TranslationContext: set to saved:', saved);
+    } else {
+      console.log('TranslationContext: no saved, using default');
     }
     setIsInitialized(true);
   }, []);
