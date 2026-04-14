@@ -1,0 +1,69 @@
+{
+  "app": {
+    "name": "SportsPrognose",
+    "tagline": "Intelligente Fußballvorhersagen"
+  },
+  "nav": {
+    "matches": "Spiele",
+    "predictions": "Vorhersagen",
+    "accuracy": "Genauigkeit",
+    "settings": "Einstellungen"
+  },
+  "match": {
+    "homeTeam": "Heimteam",
+    "awayTeam": "Auswärtsteam",
+    "kickoff": "Anpfiff",
+    "status": "Status",
+    "live": "Live",
+    "finished": "Beendet",
+    "scheduled": "Geplant",
+    "halftime": "Halbzeit",
+    "minute": "Minute"
+  },
+  "prediction": {
+    "win": "Sieg",
+    "draw": "Unentschieden",
+    "loss": "Niederlage",
+    "over": "Über {goals} Tore",
+    "under": "Unter {goals} Tore",
+    "btts": "Beide treffen",
+    "noBtts": "Beide treffen nicht",
+    "confidence": "Konfidenz",
+    "predicted": "Vorhergesagt",
+    "actual": "Ergebnis"
+  },
+  "league": {
+    "bundesliga": "Bundesliga",
+    "premierLeague": "Premier League",
+    "laLiga": "La Liga",
+    "serieA": "Serie A",
+    "ligue1": "Ligue 1",
+    "championsLeague": "Champions League"
+  },
+  "accuracy": {
+    "title": "Vorhersage-Genauigkeit",
+    "overall": "Gesamt",
+    "homeWins": "Heimsiege",
+    "awayWins": "Auswärtssiege",
+    "draws": "Unentschieden",
+    "totalGoals": "Tore gesamt",
+    "correctScore": "Exaktes Ergebnis",
+    "lastUpdated": "Zuletzt aktualisiert"
+  },
+  "settings": {
+    "language": "Sprache",
+    "theme": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "notifications": "Benachrichtigungen",
+    "apiKey": "API-Schlüssel"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "retry": "Erneut versuchen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "close": "Schließen"
+  }
+}
