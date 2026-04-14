@@ -3,6 +3,7 @@
 'use client';
 
 import { useTranslation } from './TranslationContext';
+import type { Locale } from '@sportsprognose/core';
 
 export function LanguageSelector() {
   const { locale, setLocale, supportedLocales } = useTranslation();

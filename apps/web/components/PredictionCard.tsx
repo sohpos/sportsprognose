@@ -3,6 +3,7 @@
 'use client';
 
 import { useTranslation } from './TranslationContext';
+import { localeManager } from '@sportsprognose/core';
 
 interface Prediction {
   id: string;
@@ -87,6 +88,3 @@ export function PredictionCard({ prediction }: Props) {
 export function getBackendLocale(): string {
   return localeManager.locale;
 }
-
-// export for backend modules
-export { localeManager } from '@sportsprognose/core/i18n/LocaleManager';

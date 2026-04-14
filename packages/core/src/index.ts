@@ -1,26 +1,14 @@
-// packages/core/src/index.ts
+// packages/core/src/index.ts - Simple re-exports
 
-// i18n exports - re-export from LocaleManager
-import { 
-  localeManager, 
-  Locale, 
-  LocaleConfig, 
-  SUPPORTED_LOCALES,
-  NAMESPACES,
-  t, d, n, p, c, o 
-} from './i18n/LocaleManager';
+export { localeManager } from './i18n/LocaleManager';
+export { SUPPORTED_LOCALES } from './i18n/LocaleManager';
+export { NAMESPACES } from './i18n/LocaleManager';
+export { t, d, n, p, c, o } from './i18n/LocaleManager';
 
-export { 
-  localeManager, 
-  Locale, 
-  LocaleConfig, 
-  SUPPORTED_LOCALES,
-  NAMESPACES,
-  t, d, n, p, c, o 
-};
+// Type exports
+export type { Locale } from './i18n/LocaleManager';
+export type { LocaleConfig } from './i18n/LocaleManager';
 
-// Types exports
-export * from './types';
-
-// Utils exports
+// Utils
 export * from './utils';
+export * from './types';
