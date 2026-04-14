@@ -24,7 +24,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     // Matches
     'matches:title': 'Nächste Spiele',
     'matches:showAll': 'Alle anzeigen →',
-    'matches:noData': 'Backend nicht erreichbar — starte zuerst den Backend-Server (Port 3001)',
+    'matches:noData': 'Backend nicht erreichbar — starte zuerst den Backend-Server (Port 3002)',
     
     // Prediction
     'prediction:win': 'Sieg',
@@ -85,7 +85,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     // Matches
     'matches:title': 'Upcoming Matches',
     'matches:showAll': 'Show all →',
-    'matches:noData': 'Backend not reachable — start the backend server first (Port 3001)',
+    'matches:noData': 'Backend not reachable — start the backend server first (Port 3002)',
     
     // Prediction
     'prediction:win': 'Win',
@@ -146,7 +146,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     // Matches
     'matches:title': 'Gelecek Maçlar',
     'matches:showAll': 'Tümünü göster →',
-    'matches:noData': 'Backend erişilebilir değil — önce backend sunucusunu başlatın (Port 3001)',
+    'matches:noData': 'Backend erişilebilir değil — önce backend sunucusunu başlatın (Port 3002)',
     
     // Prediction
     'prediction:win': 'Galibiyet',
