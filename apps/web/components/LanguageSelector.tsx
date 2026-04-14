@@ -14,35 +14,26 @@ const LANGUAGES = [
 const STORAGE_KEY = 'sportsprognose_locale';
 
 export function LanguageSelector() {
-  // Get current locale from localStorage
-  const [currentLocale, setCurrentLocale] = React.useState('de');
-
-  // Load on mount
-  React.useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setCurrentLocale(saved);
-    }
-  }, []);
-
-  // Handle change - IMMEDIATE reload with debug
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value;
     
-    // Save to localStorage first
+    // Save to localStorage
     localStorage.setItem(STORAGE_KEY, newLocale);
     
-    // Log to console for debugging
-    console.log('Setting locale to:', newLocale);
-    console.log('localStorage value:', localStorage.getItem(STORAGE_KEY));
+    // Show confirmation
+    alert('Sprache geändert zu: ' + newLocale + '\nDie Seite wird neu geladen...');
     
-    // RELOAD NOW!
+    // Reload
     window.location.reload();
   };
 
+  // On first load - check localStorage but don't use it to set initial value
+  // This prevents hydration mismatch
+  const initialValue = 'de'; // Always start with 'de', then in useEffect it will update
+
   return (
     <select 
-      value={currentLocale} 
+      defaultValue={initialValue}
       onChange={handleChange}
       className="px-3 py-2 rounded-lg text-sm bg-slate-800 border border-slate-600 text-white hover:border-green-400 focus:border-green-400 focus:outline-none cursor-pointer transition-colors"
     >
