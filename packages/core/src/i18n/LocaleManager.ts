@@ -293,6 +293,3 @@ export const p = (probability: number, decimals?: number) =>
 export const c = (amount: number, currency?: string) => 
   localeManager.c(amount, currency);
 export const o = (odds: number) => localeManager.o(odds);
-
-// React hooks re-export from TranslationContext
-export { useTranslation, useTranslations, TranslationProvider } from './TranslationContext';
