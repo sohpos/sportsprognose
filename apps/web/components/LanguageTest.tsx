@@ -27,7 +27,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Trefferquote',
     active: 'Poisson-Modell aktiv',
     leagueAll: 'Alle Ligen',
-    showAll: 'Alle anzeigen',
+    showAll: 'Alle anzeigen', showDetails: 'Details', topScores: 'Top 5 Ergebnisse',
     loading: 'Laden...',
     noData: 'Keine Daten verfügbar',
     prevWeek: '← Vorherige Woche',
@@ -62,7 +62,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Accuracy',
     active: 'Poisson Model active',
     leagueAll: 'All Leagues',
-    showAll: 'Show all',
+    showAll: 'Show all', showDetails: 'Details', topScores: 'Top 5 Scores',
     loading: 'Loading...',
     noData: 'No data available',
     prevWeek: '← Previous week',
@@ -97,7 +97,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Doğruluk',
     active: 'Poisson Modeli aktif',
     leagueAll: 'Tüm Ligler',
-    showAll: 'Tümünü göster',
+    showAll: 'Tümünü göster', showDetails: 'Detaylar', topScores: 'En olası 5 sonuç',
     loading: 'Yükleniyor...',
     noData: 'Veri yok',
     prevWeek: '← Önceki hafta',
@@ -314,6 +314,8 @@ export default function LanguageTest() {
                       <span>{t.probDraw}</span>
                       <span>{t.probAway}</span>
                     </div>
+                    {/* Score Matrix */}
+                    <ScoreMatrix prediction={predictions[match.id]} t={t} />
                   </div>
                 )}
               </div>
@@ -321,6 +323,52 @@ export default function LanguageTest() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+// Score Matrix Component
+function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const matrix = prediction.scoreMatrix || [];
+  const maxGoals = 5;
+  
+  // Get top 5 most likely scores
+  const topScores = [...matrix]
+    .filter(s => s.homeGoals <= maxGoals && s.homeGoals <= maxGoals)
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 5);
+  
+  const maxProb = topScores[0]?.probability || 1;
+
+  return (
+    <div className="mt-3">
+      <button 
+        onClick={() => setExpanded(!expanded)}
+        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1"
+      >
+        {expanded ? '▼' : '▶'} {t.showDetails || 'Details'}
+      </button>
+      
+      {expanded && (
+        <div className="mt-2 p-2 bg-slate-800 rounded text-xs">
+          <div className="text-slate-400 mb-2">{t.topScores || 'Top 5 Ergebnisse'}:</div>
+          {topScores.map((s: any, i: number) => (
+            <div key={i} className="flex items-center gap-2 mb-1">
+              <span className="text-white font-mono w-8">{s.homeGoals}:{s.awayGoals}</span>
+              <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full" 
+                  style={{ 
+                    width: `${(s.probability / maxProb) * 100}%`,
+                    backgroundColor: i === 0 ? '#00e676' : '#2979ff'
+                  }} 
+                />
+              </div>
+              <span className="text-slate-400 w-10 text-right">{(s.probability * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
