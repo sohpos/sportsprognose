@@ -90,28 +90,43 @@ async function oldbApiGet(endpoint: string): Promise<any> {
 
 async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
-    const matches = await oldbApiGet(`/getmatchdata/${OLDB_LEAGUE_KEYS.BL1}/${SEASON_FUTURE}?teamId=${teamId}`);
-    if (!matches || !matches.length) return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
+    const data = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${teamId}`);
+    if (!data || !data.length) return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
     
-    const last10 = matches.slice(-10);
+    const last10 = data.slice(-10);
     let gf = 0, ga = 0;
-    const form = last10.slice(-5).map((m: any) => {
-      const homeGoals = m.matchResults?.find((r: any) => r.resultTypeID === 2)?.pointsTeam1;
-      const awayGoals = m.matchResults?.find((r: any) => r.resultTypeID === 2)?.pointsTeam2;
-      if (homeGoals == null || awayGoals == null) return 'D';
-      if (m.team1.teamId === teamId) {
-        gf += homeGoals; ga += awayGoals;
-        return homeGoals > awayGoals ? 'W' : homeGoals < awayGoals ? 'L' : 'D';
+    const formArr: string[] = [];
+    
+    for (const m of last10) {
+      const result = m.matchResults?.find((r: any) => r.resultTypeID === 2);
+      if (!result) continue;
+      
+      const isHome = m.team1.teamId === Number(teamId);
+      const homeGoals = result.pointsTeam1;
+      const awayGoals = result.pointsTeam2;
+      
+      if (isHome) {
+        gf += homeGoals;
+        ga += awayGoals;
       } else {
-        gf += awayGoals; ga += homeGoals;
-        return awayGoals > homeGoals ? 'W' : awayGoals < homeGoals ? 'L' : 'D';
+        gf += awayGoals;
+        ga += homeGoals;
       }
-    }).join('') || 'DDDDD';
-
+      
+      // Form: last 5 games
+      if (formArr.length < 5) {
+        if (homeGoals > awayGoals) formArr.push(isHome ? 'W' : 'L');
+        else if (homeGoals < awayGoals) formArr.push(isHome ? 'L' : 'W');
+        else formArr.push('D');
+      }
+    }
+    
+    if (last10.length === 0) return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
+    
     return {
       avgGoalsScored: Number((gf / last10.length || 1.4).toFixed(2)),
       avgGoalsConceded: Number((ga / last10.length || 1.4).toFixed(2)),
-      form,
+      form: formArr.join('') || 'DDDDD',
     };
   } catch {
     return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
