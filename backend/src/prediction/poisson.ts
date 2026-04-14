@@ -127,6 +127,13 @@ export function predictMatch(
   // Confidence: how dominant is the top outcome?
   const confidence = Math.round(maxProb * 100);
 
+  // Top 5 most likely scores
+  const allScores = scoreMatrix.flat().map((row: any, idx: number) => ({
+    homeGoals: Math.floor(idx / (maxGoals + 1)),
+    awayGoals: idx % (maxGoals + 1),
+    probability: row.probability
+  })).sort((a: any, b: any) => b.probability - a.probability).slice(0, 5);
+
   return {
     matchId,
     homeWinProbability: homeWin,
