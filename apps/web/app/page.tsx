@@ -2,6 +2,7 @@ import { fetchMatches, fetchPrediction, fetchAccuracyStats } from '@/lib/api';
 import MatchCard from '@/components/MatchCard';
 import AccuracyWidget from '@/components/AccuracyWidget';
 import { Match, PredictionResult } from '@sportsprognose/core';
+import LanguageTest from '@/components/LanguageTest';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,14 +38,7 @@ export default async function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div className="text-center py-8">
-        <h1 className="text-4xl font-bold mb-3">
-          <span className="gradient-text">KI-Fußballprognosen</span>
-        </h1>
-        <p className="text-slate-400 text-lg max-w-xl mx-auto">
-          Poisson-Modell · Echtzeit-Statistiken · Trefferquoten-Tracking
-        </p>
-      </div>
+      <LanguageTest />
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
