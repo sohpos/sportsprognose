@@ -3,12 +3,57 @@
 import { useState, useEffect } from 'react';
 
 const translations: Record<string, Record<string, string>> = {
-  de: { 'title': 'KI-Fußballprognosen', 'subtitle': 'Poisson-Modell · Echtzeit-Statistiken · Trefferquoten-Tracking' },
-  en: { 'title': 'AI Football Predictions', 'subtitle': 'Poisson Model · Real-time Stats · Accuracy Tracking' },
-  es: { 'title': 'Predicciones de Fútbol IA', 'subtitle': 'Modelo Poisson · Estadísticas en Vivo' },
-  fr: { 'title': 'Prédictions Football IA', 'subtitle': 'Modèle Poisson · Statistiques en Direct' },
-  it: { 'title': 'Previsioni Calcio IA', 'subtitle': 'Modello Poisson · Statistiche in Tempo Reale' },
-  tr: { 'title': 'Yapay Zeka Futbol Tahminleri', 'subtitle': 'Poisson Modeli · Gerçek Zamanlı İstatistikler' },
+  de: { 
+    'title': 'KI-Fußballprognosen', 
+    'subtitle': 'Poisson-Modell · Echtzeit-Statistiken · Trefferquoten-Tracking',
+    'matches': 'Nächste Spiele',
+    'showAll': 'Alle anzeigen',
+    'leagues': 'Ligen',
+    'predictionsToday': 'Prognosen heute',
+    'model': 'Modell',
+    'accuracy': 'Trefferquote',
+    'win': 'Sieg',
+    'draw': 'Unentschieden',
+    'loss': 'Niederlage',
+    'confidence': 'sicher',
+    'home': 'Heim',
+    'drawLabel': 'Unentschieden',
+    'away': 'Gast',
+  },
+  en: { 
+    'title': 'AI Football Predictions', 
+    'subtitle': 'Poisson Model · Real-time Stats · Accuracy Tracking',
+    'matches': 'Upcoming Matches',
+    'showAll': 'Show all',
+    'leagues': 'Leagues',
+    'predictionsToday': 'Predictions today',
+    'model': 'Model',
+    'accuracy': 'Accuracy',
+    'win': 'Win',
+    'draw': 'Draw',
+    'loss': 'Loss',
+    'confidence': 'confidence',
+    'home': 'Home',
+    'drawLabel': 'Draw',
+    'away': 'Away',
+  },
+  tr: { 
+    'title': 'Yapay Zeka Futbol Tahminleri', 
+    'subtitle': 'Poisson Modeli · Gerçek Zamanlı İstatistikler',
+    'matches': 'Gelecek Maçlar',
+    'showAll': 'Tümünü göster',
+    'leagues': 'Ligler',
+    'predictionsToday': 'Bugünkü Tahminler',
+    'model': 'Model',
+    'accuracy': 'Doğruluk',
+    'win': 'Galibiyet',
+    'draw': 'Beraberlik',
+    'loss': 'Mağlubiyet',
+    'confidence': 'güven',
+    'home': 'Ev',
+    'drawLabel': 'Beraberlik',
+    'away': 'Deplasman',
+  },
 };
 
 export default function LanguageTest() {
@@ -31,7 +76,28 @@ export default function LanguageTest() {
       <p className="text-slate-400 text-lg max-w-xl mx-auto">
         {texts.subtitle}
       </p>
-      <p className="mt-4 text-green-400">Aktuelle Sprache: {locale}</p>
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-4 mt-8">
+        <div className="card p-4 text-center">
+          <div className="text-2xl mb-1">🏆</div>
+          <div className="text-xl font-bold text-white">4</div>
+          <div className="text-xs text-slate-500">{texts.leagues}</div>
+        </div>
+        <div className="card p-4 text-center">
+          <div className="text-2xl mb-1">📊</div>
+          <div className="text-xl font-bold text-white">6</div>
+          <div className="text-xs text-slate-500">{texts.predictionsToday}</div>
+        </div>
+        <div className="card p-4 text-center">
+          <div className="text-2xl mb-1">🧮</div>
+          <div className="text-xl font-bold text-white">{texts.model}</div>
+          <div className="text-xs text-slate-500">Poisson</div>
+        </div>
+      </div>
+      {/* Matches title */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-white text-left">{texts.matches}</h2>
+      </div>
     </div>
   );
 }
