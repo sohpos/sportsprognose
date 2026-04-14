@@ -1,7 +1,8 @@
 import { League, Match, Team } from '../types';
 import { getMockMatches, getMockMatchById, LEAGUES as MOCK_LEAGUES } from './mockData';
 
-const BASE_URL = 'https://api.football-data.org/v4';
+// api-sports.io configuration
+const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.FOOTBALL_API_KEY;
 
 const SUPPORTED_LEAGUES: League[] = [
@@ -11,29 +12,43 @@ const SUPPORTED_LEAGUES: League[] = [
   { id: 'CL', name: 'Champions League', country: 'Europe' },
 ];
 
-async function apiGet(path: string): Promise<any> {
+// League ID mapping for api-songs.io
+const LEAGUE_IDS: Record<string, number> = {
+  BL1: 2002, // Bundesliga
+  PL: 39,    // Premier League
+  PD: 140,   // La Liga
+  CL: 2,     // Champions League
+};
+
+async function apiGet(endpoint: string): Promise<any> {
   if (!API_KEY) throw new Error('FOOTBALL_API_KEY missing');
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'X-Auth-Token': API_KEY },
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    headers: {
+      'x-apisports-key': API_KEY,
+    },
   });
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`football-data API ${res.status}: ${body.slice(0, 200)}`);
+    throw new Error(`api-sports.io ${res.status}: ${body.slice(0, 200)}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  if (data.errors?.length) {
+    throw new Error(`api-sports.io error: ${data.errors.join(', ')}`);
+  }
+  return data;
 }
 
-function resultChar(match: any, teamId: number): string {
-  const home = match.score?.fullTime?.home;
-  const away = match.score?.fullTime?.away;
-  if (home == null || away == null) return 'D';
+function resultChar(fixture: any, teamId: number): string {
+  const homeGoals = fixture.goals?.home;
+  const awayGoals = fixture.goals?.away;
+  if (homeGoals == null || awayGoals == null) return 'D';
 
-  const isHome = match.homeTeam?.id === teamId;
-  const gf = isHome ? home : away;
-  const ga = isHome ? away : home;
+  const isHome = fixture.teams?.home?.id === teamId;
+  const gf = isHome ? homeGoals : awayGoals;
+  const ga = isHome ? awayGoals : homeGoals;
   if (gf > ga) return 'W';
   if (gf < ga) return 'L';
   return 'D';
@@ -41,29 +56,30 @@ function resultChar(match: any, teamId: number): string {
 
 async function getTeamStats(teamId: number): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
-    const data = await apiGet(`/teams/${teamId}/matches?status=FINISHED&limit=10`);
-    const matches = (data.matches || []).slice(-10);
+    const data = await apiGet(`/fixtures?team=${teamId}&status=FT&limit=10`);
+    const fixtures = data.response || [];
 
-    if (!matches.length) {
+    if (!fixtures.length) {
       return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
     }
 
-    let gf = 0;
-    let ga = 0;
-    const form = matches.slice(-5).map((m: any) => resultChar(m, teamId)).join('') || 'DDDDD';
+    const last10 = fixtures.slice(-10);
+    let gf = 0, ga = 0;
 
-    for (const m of matches) {
-      const home = m.score?.fullTime?.home;
-      const away = m.score?.fullTime?.away;
-      if (home == null || away == null) continue;
-      const isHome = m.homeTeam?.id === teamId;
-      gf += isHome ? home : away;
-      ga += isHome ? away : home;
+    const form = last10.map((f: any) => resultChar(f, teamId)).join('') || 'DDDDD';
+
+    for (const f of last10) {
+      const homeGoals = f.goals?.home;
+      const awayGoals = f.goals?.away;
+      if (homeGoals == null || awayGoals == null) continue;
+      const isHome = f.teams?.home?.id === teamId;
+      gf += isHome ? homeGoals : awayGoals;
+      ga += isHome ? awayGoals : homeGoals;
     }
 
     return {
-      avgGoalsScored: Number((gf / matches.length || 1.4).toFixed(2)),
-      avgGoalsConceded: Number((ga / matches.length || 1.4).toFixed(2)),
+      avgGoalsScored: Number((gf / last10.length || 1.4).toFixed(2)),
+      avgGoalsConceded: Number((ga / last10.length || 1.4).toFixed(2)),
       form,
     };
   } catch {
@@ -71,28 +87,31 @@ async function getTeamStats(teamId: number): Promise<Pick<Team, 'avgGoalsScored'
   }
 }
 
-async function mapApiMatch(m: any): Promise<Match> {
+async function mapApiMatch(fixture: any): Promise<Match> {
+  const homeId = fixture.teams?.home?.id;
+  const awayId = fixture.teams?.away?.id;
+
   const [homeStats, awayStats] = await Promise.all([
-    getTeamStats(m.homeTeam.id),
-    getTeamStats(m.awayTeam.id),
+    homeId ? getTeamStats(homeId) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
+    awayId ? getTeamStats(awayId) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
   ]);
 
   return {
-    id: `live-${m.id}`,
-    leagueId: m.competition?.code || 'UNK',
-    leagueName: m.competition?.name || 'Unknown League',
-    utcDate: m.utcDate,
-    status: m.status === 'TIMED' ? 'SCHEDULED' : m.status,
+    id: `live-${fixture.fixture?.id}`,
+    leagueId: fixture.league?.id?.toString() || 'UNK',
+    leagueName: fixture.league?.name || 'Unknown League',
+    utcDate: fixture.fixture?.date,
+    status: fixture.fixture?.status?.short === 'NS' ? 'SCHEDULED' : fixture.fixture?.status?.short,
     homeTeam: {
-      id: String(m.homeTeam.id),
-      name: m.homeTeam.name,
-      shortName: m.homeTeam.shortName || m.homeTeam.tla || m.homeTeam.name,
+      id: String(homeId),
+      name: fixture.teams?.home?.name || 'Home Team',
+      shortName: fixture.teams?.home?.name?.slice(0, 3).toUpperCase() || 'HOM',
       ...homeStats,
     },
     awayTeam: {
-      id: String(m.awayTeam.id),
-      name: m.awayTeam.name,
-      shortName: m.awayTeam.shortName || m.awayTeam.tla || m.awayTeam.name,
+      id: String(awayId),
+      name: fixture.teams?.away?.name || 'Away Team',
+      shortName: fixture.teams?.away?.name?.slice(0, 3).toUpperCase() || 'AWY',
       ...awayStats,
     },
   };
@@ -117,14 +136,18 @@ export async function getUpcomingMatches(league?: string): Promise<Match[]> {
     const to = toDate.toISOString().split('T')[0];
 
     const buckets = await Promise.all(
-      targets.map(code => apiGet(`/competitions/${code}/matches?dateFrom=${from}&dateTo=${to}&status=SCHEDULED`))
+      targets.map(code => {
+        const leagueId = LEAGUE_IDS[code];
+        return apiGet(`/fixtures?league=${leagueId}&from=${from}&to=${to}&status=NS`);
+      })
     );
 
-    const allMatches = buckets.flatMap(b => b.matches || []);
-    const mapped = await Promise.all(allMatches.map(mapApiMatch));
+    const allFixtures = buckets.flatMap(b => b.response || []);
+    const mapped = await Promise.all(allFixtures.map(mapApiMatch));
 
     return mapped.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
-  } catch {
+  } catch (e) {
+    console.error('API error, falling back to mock:', e);
     const matches = getMockMatches();
     return league ? matches.filter(m => m.leagueId === league) : matches;
   }
@@ -138,13 +161,13 @@ export async function getMatchById(id: string): Promise<Match | undefined> {
     if (!API_KEY) return undefined;
 
     try {
-      const m = await apiGet(`/matches/${numericId}`);
-      return mapApiMatch(m.match || m);
+      const data = await apiGet(`/fixtures?id=${numericId}`);
+      const fixture = data.response?.[0];
+      if (fixture) return mapApiMatch(fixture);
     } catch {
       return undefined;
     }
   }
 
-  // fallback
   return getMockMatchById(id);
 }
