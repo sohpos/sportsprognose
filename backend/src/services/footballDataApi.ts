@@ -20,7 +20,7 @@ const LEAGUE_IDS: Record<string, number> = {
   CL: 2,     // Champions League
 };
 
-// Season mapping (current season)
+// Season 2024 for historical data
 const LEAGUE_SEASONS: Record<string, number> = {
   BL1: 2024,
   PL: 2024,
@@ -32,9 +32,7 @@ async function apiGet(endpoint: string): Promise<any> {
   if (!API_KEY) throw new Error('FOOTBALL_API_KEY missing');
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'x-apisports-key': API_KEY,
-    },
+    headers: { 'x-apisports-key': API_KEY },
   });
 
   if (!res.ok) {
@@ -62,10 +60,10 @@ function resultChar(fixture: any, teamId: number): string {
   return 'D';
 }
 
-async function getTeamStats(teamId: number): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
+async function getTeamStats(teamId: number, leagueId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
-    const season = LEAGUE_SEASONS.PL; // default season
-    const data = await apiGet(`/fixtures?team=${teamId}&season=${season}&status=FT&limit=10`);
+    const season = LEAGUE_SEASONS[leagueId] || 2024;
+    const data = await apiGet(`/fixtures?team=${teamId}&season=${season}&status=FT&limit=15`);
     const fixtures = data.response || [];
 
     if (!fixtures.length) {
@@ -96,21 +94,25 @@ async function getTeamStats(teamId: number): Promise<Pick<Team, 'avgGoalsScored'
   }
 }
 
-async function mapApiMatch(fixture: any): Promise<Match> {
+async function mapApiMatch(fixture: any, isPast: boolean = false): Promise<Match> {
   const homeId = fixture.teams?.home?.id;
   const awayId = fixture.teams?.away?.id;
+  
+  // Find league ID from our mapping
+  const apiLeagueId = fixture.league?.id;
+  const leagueCode = Object.entries(LEAGUE_IDS).find(([_, id]) => id === apiLeagueId)?.[0] || 'PL';
 
   const [homeStats, awayStats] = await Promise.all([
-    homeId ? getTeamStats(homeId) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
-    awayId ? getTeamStats(awayId) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
+    homeId ? getTeamStats(homeId, leagueCode) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
+    awayId ? getTeamStats(awayId, leagueCode) : Promise.resolve({ avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' }),
   ]);
 
   return {
-    id: `live-${fixture.fixture?.id}`,
-    leagueId: fixture.league?.id?.toString() || 'UNK',
+    id: isPast ? `past-${fixture.fixture?.id}` : `live-${fixture.fixture?.id}`,
+    leagueId: leagueCode,
     leagueName: fixture.league?.name || 'Unknown League',
     utcDate: fixture.fixture?.date,
-    status: fixture.fixture?.status?.short === 'NS' ? 'SCHEDULED' : fixture.fixture?.status?.short,
+    status: isPast ? 'FINISHED' : (fixture.fixture?.status?.short === 'NS' ? 'SCHEDULED' : fixture.fixture?.status?.short),
     homeTeam: {
       id: String(homeId),
       name: fixture.teams?.home?.name || 'Home Team',
@@ -131,49 +133,54 @@ export function getSupportedLeagues(): League[] {
 }
 
 export async function getUpcomingMatches(league?: string): Promise<Match[]> {
+  // Use mock data for future matches (API doesn't support future dates on free plan)
+  const matches = getMockMatches();
+  return league ? matches.filter(m => m.leagueId === league) : matches;
+}
+
+export async function getPastMatches(league?: string): Promise<Match[]> {
   if (!API_KEY) {
-    const matches = getMockMatches();
-    return league ? matches.filter(m => m.leagueId === league) : matches;
+    return [];
   }
 
   try {
     const targets = league ? [league] : SUPPORTED_LEAGUES.map(l => l.id);
+    
+    // Get recent past matches (last 2 weeks)
     const today = new Date();
-    const from = today.toISOString().split('T')[0];
-    const toDate = new Date(today);
-    toDate.setDate(toDate.getDate() + 7);
-    const to = toDate.toISOString().split('T')[0];
+    const fromDate = new Date(today);
+    fromDate.setDate(fromDate.getDate() - 14);
+    const from = fromDate.toISOString().split('T')[0];
+    const to = today.toISOString().split('T')[0];
 
     const buckets = await Promise.all(
       targets.map(code => {
         const leagueId = LEAGUE_IDS[code];
         const season = LEAGUE_SEASONS[code] || 2024;
-        return apiGet(`/fixtures?league=${leagueId}&season=${season}&from=${from}&to=${to}&status=NS`);
+        return apiGet(`/fixtures?league=${leagueId}&season=${season}&from=${from}&to=${to}&status=FT`);
       })
     );
 
     const allFixtures = buckets.flatMap(b => b.response || []);
-    const mapped = await Promise.all(allFixtures.map(mapApiMatch));
+    const mapped = await Promise.all(allFixtures.map(f => mapApiMatch(f, true)));
 
-    return mapped.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+    return mapped.sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime());
   } catch (e) {
-    console.error('API error, falling back to mock:', e);
-    const matches = getMockMatches();
-    return league ? matches.filter(m => m.leagueId === league) : matches;
+    console.error('API error fetching past matches:', e);
+    return [];
   }
 }
 
 export async function getMatchById(id: string): Promise<Match | undefined> {
   if (id.startsWith('mock-')) return getMockMatchById(id);
-
-  if (id.startsWith('live-')) {
-    const numericId = id.replace('live-', '');
+  if (id.startsWith('past-') || id.startsWith('live-')) {
+    const numericId = id.replace(/^(past|live)-/, '');
     if (!API_KEY) return undefined;
 
     try {
       const data = await apiGet(`/fixtures?id=${numericId}`);
       const fixture = data.response?.[0];
-      if (fixture) return mapApiMatch(fixture);
+      if (fixture) return mapApiMatch(fixture, id.startsWith('past-'));
     } catch {
       return undefined;
     }

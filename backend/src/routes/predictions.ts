@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getMatchById } from '../services/footballDataApi';
+import { getMatchById, getPastMatches } from '../services/footballDataApi';
 import { predictMatch } from '../prediction/poisson';
 import { savePrediction, getAccuracyStats } from '../db/database';
 import crypto from 'crypto';
@@ -10,13 +10,11 @@ function uuidv4(): string {
 
 const router = Router();
 
-// Cache predictions in memory to avoid recomputing
 const predictionCache = new Map<string, ReturnType<typeof predictMatch>>();
 
 router.get('/:matchId', async (req, res) => {
   const { matchId } = req.params;
 
-  // Check cache
   if (predictionCache.has(matchId)) {
     return res.json({ prediction: predictionCache.get(matchId) });
   }
@@ -38,7 +36,6 @@ router.get('/:matchId', async (req, res) => {
     matchId
   );
 
-  // Save to DB (fire and forget)
   try {
     savePrediction({
       id: uuidv4(),
@@ -70,6 +67,17 @@ router.get('/stats/accuracy', (_req, res) => {
     res.json({ stats });
   } catch (e) {
     res.status(500).json({ error: 'Failed to load accuracy stats' });
+  }
+});
+
+// Get past matches for display
+router.get('/past', async (req, res) => {
+  const { league } = req.query;
+  try {
+    const matches = await getPastMatches(league as string | undefined);
+    res.json({ matches, total: matches.length });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load past matches' });
   }
 });
 
