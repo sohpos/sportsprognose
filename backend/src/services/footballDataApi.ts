@@ -24,8 +24,9 @@ const FD_LEAGUE_CODES: Record<string, string> = { BL1: 'BL1', PL: 'PL', PD: 'PD'
 const AS_LEAGUE_IDS: Record<string, number> = { BL1: 2002, PL: 39, PD: 140, CL: 2 };
 const OLDB_LEAGUE_KEYS: Record<string, string> = { BL1: 'bl1' };
 
-// Current season
-const SEASON = 2024;
+// Current season - use 2025 for upcoming matches
+const SEASON_PAST = 2024;
+const SEASON_FUTURE = 2025;
 
 async function fdApiGet(endpoint: string): Promise<any> {
   if (!FD_API_KEY) throw new Error('FOOTBALL_API_KEY missing');
@@ -49,7 +50,7 @@ async function oldbApiGet(endpoint: string): Promise<any> {
 
 async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
-    const matches = await oldbApiGet(`/getmatchdata/${OLDB_LEAGUE_KEYS.BL1}/${SEASON}?teamId=${teamId}`);
+    const matches = await oldbApiGet(`/getmatchdata/${OLDB_LEAGUE_KEYS.BL1}/${SEASON_FUTURE}?teamId=${teamId}`);
     if (!matches || !matches.length) return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
     
     const last10 = matches.slice(-10);
@@ -82,7 +83,7 @@ async function getMatchesFromOpenLigaDB(leagueId: string): Promise<Match[]> {
     const leagueKey = OLDB_LEAGUE_KEYS[leagueId];
     if (!leagueKey) return [];
     
-    const data = await oldbApiGet(`/getmatchdata/${leagueKey}/${SEASON}`);
+    const data = await oldbApiGet(`/getmatchdata/${leagueKey}/${SEASON_FUTURE}`);
     if (!data || !data.length) return [];
     
     // Filter upcoming matches (no result yet)
