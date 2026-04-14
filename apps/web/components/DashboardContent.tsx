@@ -7,8 +7,12 @@ import { t, getSavedLocale } from '@/lib/translations';
 export default function DashboardContent() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
+  // Wait for mount before showing translations - fixes hydration mismatch!
   useEffect(() => {
+    setMounted(true);
+    
     fetch('/api/matches')
       .then(r => r.json())
       .then(data => {
@@ -18,6 +22,36 @@ export default function DashboardContent() {
       .catch(() => setLoading(false));
   }, []);
 
+  // If not mounted yet, show server-safe content (German)
+  if (!mounted) {
+    return (
+      <>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="card p-4 text-center">
+            <div className="text-2xl mb-1">🏆</div>
+            <div className="text-xl font-bold text-white">4</div>
+            <div className="text-xs text-slate-500">Ligen</div>
+          </div>
+          <div className="card p-4 text-center">
+            <div className="text-2xl mb-1">📊</div>
+            <div className="text-xl font-bold text-white">0</div>
+            <div className="text-xs text-slate-500">Prognosen heute</div>
+          </div>
+          <div className="card p-4 text-center">
+            <div className="text-2xl mb-1">🧮</div>
+            <div className="text-xl font-bold text-white">Poisson</div>
+            <div className="text-xs text-slate-500">Modell</div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold text-white mt-8 mb-4">Nächste Spiele</h2>
+        </div>
+      </>
+    );
+  }
+
+  // After mount, show translated content
   const stats = [
     { label: t('stats:leagues'), value: '4', icon: '🏆' },
     { label: t('stats:predictions'), value: matches.length.toString(), icon: '📊' },
@@ -26,8 +60,6 @@ export default function DashboardContent() {
 
   return (
     <>
-      {/* Hero - rendered separately in LanguageTest */}
-      
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         {stats.map(stat => (
