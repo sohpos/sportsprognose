@@ -2,16 +2,29 @@
 
 'use client';
 
-import { useTranslation } from './TranslationContext';
+import { useState, useEffect } from 'react';
+import { SUPPORTED_LOCALES } from '@sportsprognose/core';
 import type { Locale } from '@sportsprognose/core';
 
-export function LanguageSelector() {
-  const { locale, setLocale, supportedLocales } = useTranslation();
+const STORAGE_KEY = 'sportsprognose_locale';
 
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+export function LanguageSelector() {
+  const [locale, setLocale] = useState<Locale>('de');
+
+  // Load saved locale on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY) as Locale;
+    if (saved && saved in SUPPORTED_LOCALES) {
+      setLocale(saved);
+    }
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value as Locale;
-    console.log('LanguageSelector: changing to', newLocale);
-    await setLocale(newLocale);
+    setLocale(newLocale);
+    localStorage.setItem(STORAGE_KEY, newLocale);
+    // Dispatch event for other components
+    window.dispatchEvent(new CustomEvent('localechange', { detail: newLocale }));
   };
 
   return (
@@ -20,7 +33,7 @@ export function LanguageSelector() {
       onChange={handleChange}
       className="px-3 py-2 rounded-lg text-sm bg-slate-800 border border-slate-600 text-white hover:border-green-400 focus:border-green-400 focus:outline-none cursor-pointer transition-colors"
     >
-      {Object.entries(supportedLocales).map(([code, config]) => (
+      {Object.entries(SUPPORTED_LOCALES).map(([code, config]) => (
         <option key={code} value={code} className="bg-slate-800">
           {config.flag} {config.name}
         </option>

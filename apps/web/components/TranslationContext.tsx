@@ -3,19 +3,95 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { 
-  localeManager, 
-  Locale, 
-  SUPPORTED_LOCALES,
-  type LocaleConfig 
-} from '@sportsprognose/core';
+import { SUPPORTED_LOCALES } from '@sportsprognose/core';
+import type { Locale, LocaleConfig } from '@sportsprognose/core';
+
+const STORAGE_KEY = 'sportsprognose_locale';
+
+// Simple translation function
+function translate(key: string, locale: Locale): string {
+  // Basic translations
+  const translations: Record<Locale, Record<string, string>> = {
+    de: {
+      'app:title': 'KI-Fußballprognosen',
+      'app:subtitle': 'Poisson-Modell · Echtzeit-Statistiken · Trefferquoten-Tracking',
+      'matches:title': 'Nächste Spiele',
+      'matches:all': 'Alle anzeigen →',
+      'stats:leagues': 'Ligen',
+      'stats:predictions': 'Prognosen heute',
+      'stats:model': 'Modell',
+      'prediction:win': 'Sieg',
+      'prediction:draw': 'Unentschieden',
+      'prediction:loss': 'Niederlage',
+      'prediction:confidence': 'sicher',
+      'accuracy:title': 'Trefferquote',
+    },
+    en: {
+      'app:title': 'AI Football Predictions',
+      'app:subtitle': 'Poisson Model · Real-time Stats · Accuracy Tracking',
+      'matches:title': 'Upcoming Matches',
+      'matches:all': 'Show all →',
+      'stats:leagues': 'Leagues',
+      'stats:predictions': 'Predictions today',
+      'stats:model': 'Model',
+      'prediction:win': 'Win',
+      'prediction:draw': 'Draw',
+      'prediction:loss': 'Loss',
+      'prediction:confidence': 'confidence',
+      'accuracy:title': 'Accuracy',
+    },
+    es: {
+      'app:title': 'Predicciones de Fútbol IA',
+      'app:subtitle': 'Modelo Poisson · Estadísticas en Vivo',
+      'matches:title': 'Próximos Partidos',
+      'matches:all': 'Ver todos →',
+      'stats:leagues': 'Ligas',
+      'stats:predictions': 'Predicciones hoy',
+      'stats:model': 'Modelo',
+      'prediction:win': 'Victoria',
+      'prediction:draw': 'Empate',
+      'prediction:loss': 'Derrota',
+      'prediction:confidence': 'confianza',
+      'accuracy:title': 'Precisión',
+    },
+    fr: {
+      'app:title': 'Prédictions Football IA',
+      'app:subtitle': 'Modèle Poisson · Statistiques en Direct',
+      'matches:title': 'Matchs à Venir',
+      'matches:all': 'Voir tout →',
+      'stats:leagues': 'Ligues',
+      'stats:predictions': 'Prédictions aujourd\'hui',
+      'stats:model': 'Modèle',
+      'prediction:win': 'Victoire',
+      'prediction:draw': 'Match nul',
+      'prediction:loss': 'Défaite',
+      'prediction:confidence': 'confiance',
+      'accuracy:title': 'Précision',
+    },
+    it: {
+      'app:title': 'Previsioni Calcio IA',
+      'app:subtitle': 'Modello Poisson · Statistiche in Tempo Reale',
+      'matches:title': 'Prossime Partite',
+      'matches:all': 'Vedi tutte →',
+      'stats:leagues': 'Leghe',
+      'stats:predictions': 'Previsioni oggi',
+      'stats:model': 'Modello',
+      'prediction:win': 'Vittoria',
+      'prediction:draw': 'Pareggio',
+      'prediction:loss': 'Sconfitta',
+      'prediction:confidence': 'fiducia',
+      'accuracy:title': 'Precisione',
+    },
+  };
+  return translations[locale]?.[key] || translations['en'][key] || key;
+}
 
 interface TranslationContextValue {
   locale: Locale;
   config: LocaleConfig;
   isInitialized: boolean;
-  setLocale: (locale: Locale) => Promise<void>;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  setLocale: (locale: Locale) => void;
+  t: (key: string) => string;
   d: (date: Date | string, format?: 'short' | 'long' | 'time') => string;
   n: (value: number, decimals?: number) => string;
   p: (probability: number, decimals?: number) => string;
@@ -26,66 +102,49 @@ interface TranslationContextValue {
 
 const TranslationContext = createContext<TranslationContextValue | null>(null);
 
-// Initialize locale manager on app startup
-async function initLocale(): Promise<void> {
-  await localeManager.init();
-}
-
 export function TranslationProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('de');
   const [isInitialized, setIsInitialized] = useState(false);
-  const [, forceUpdate] = useState(0);
 
-  // 1. Load default language on app startup
+  // Load saved locale on mount
   useEffect(() => {
-    initLocale().then(() => {
-      const savedLocale = localeManager.locale;
-      console.log('Initial locale:', savedLocale);
-      setLocaleState(savedLocale);
-      setIsInitialized(true);
-    }).catch(e => {
-      console.error('initLocale failed:', e);
-      setIsInitialized(true);
-    });
-    
-    // Subscribe for dynamic language changes
-    const unsubscribe = localeManager.subscribe(() => {
-      const newLocale = localeManager.locale;
-      console.log('Locale changed via subscription:', newLocale);
+    const saved = localStorage.getItem(STORAGE_KEY) as Locale;
+    if (saved && saved in SUPPORTED_LOCALES) {
+      setLocaleState(saved);
+    }
+    setIsInitialized(true);
+
+    // Listen for locale changes from LanguageSelector
+    const handler = (e: Event) => {
+      const newLocale = (e as CustomEvent).detail as Locale;
       setLocaleState(newLocale);
-      forceUpdate(n => n + 1);
-    });
-    
-    return unsubscribe;
+    };
+    window.addEventListener('localechange', handler);
+    return () => window.removeEventListener('localechange', handler);
   }, []);
 
-  // 2. Dynamic language switching - simple direct update
-  const handleSetLocale = useCallback(async (newLocale: Locale) => {
-    console.log('handleSetLocale called with:', newLocale);
-    // Directly update state - this is the key fix
+  // Simple setLocale that saves to localStorage
+  const handleSetLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
-    forceUpdate(n => n + 1);
-    
-    // Try to also update localeManager (may fail but state will update)
-    try {
-      await localeManager.setLocale(newLocale);
-      console.log('localeManager.setLocale succeeded');
-    } catch (e) {
-      console.warn('localeManager.setLocale failed (non-critical):', e);
-    }
+    localStorage.setItem(STORAGE_KEY, newLocale);
   }, []);
 
   const value: TranslationContextValue = {
     locale,
-    config: localeManager.config,
+    config: SUPPORTED_LOCALES[locale],
     isInitialized,
     setLocale: handleSetLocale,
-    t: localeManager.t.bind(localeManager),
-    d: localeManager.d.bind(localeManager),
-    n: localeManager.n.bind(localeManager),
-    p: localeManager.p.bind(localeManager),
-    c: localeManager.c.bind(localeManager),
-    o: localeManager.o.bind(localeManager),
+    t: (key: string) => translate(key, locale),
+    d: (date: Date | string, format = 'short') => {
+      const d = new Date(date);
+      if (format === 'short') return d.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US');
+      if (format === 'time') return d.toLocaleTimeString(locale === 'de' ? 'de-DE' : 'en-US');
+      return d.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US');
+    },
+    n: (value: number, decimals = 0) => value.toLocaleString(locale === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }),
+    p: (probability: number, decimals = 1) => (probability * 100).toFixed(decimals) + '%',
+    c: (amount: number, currency = 'EUR') => amount.toFixed(2) + ' ' + (currency === 'EUR' ? '€' : '$'),
+    o: (odds: number) => odds.toFixed(2),
     supportedLocales: SUPPORTED_LOCALES,
   };
 
@@ -100,13 +159,12 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 export function useTranslation() {
   const context = useContext(TranslationContext);
   if (!context) {
-    // Fallback values when not initialized
     return {
       locale: 'de' as Locale,
       config: SUPPORTED_LOCALES['de'],
       isInitialized: false,
-      setLocale: async () => {},
-      t: (key: string, params?: Record<string, string | number>) => key,
+      setLocale: () => {},
+      t: (key: string) => key,
       d: (date: Date | string) => new Date(date).toLocaleDateString(),
       n: (value: number) => value.toString(),
       p: (probability: number) => (probability * 100).toFixed(1) + '%',
@@ -123,10 +181,3 @@ export function useTranslations() {
   const { t, d, n, p, c, o } = useTranslation();
   return { t, d, n, p, c, o };
 }
-
-// Example usage in component:
-// const { t, d, p, o, locale } = useTranslation();
-// <span>{t('prediction:win')}</span>           // "Sieg"
-// <span>{d(match.kickoff)}</span>            // "13.04.2026"
-// <span>{p(prediction.probability)}</span>   // "75,0%"
-// <span>{o(odds)}</span>                    // "1,85"
