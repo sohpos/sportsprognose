@@ -20,7 +20,7 @@ const LEAGUE_IDS: Record<string, number> = {
   CL: 2,     // Champions League
 };
 
-// Season 2024 for historical data
+// Season 2024/25 for historical data
 const LEAGUE_SEASONS: Record<string, number> = {
   BL1: 2024,
   PL: 2024,
@@ -98,7 +98,6 @@ async function mapApiMatch(fixture: any, isPast: boolean = false): Promise<Match
   const homeId = fixture.teams?.home?.id;
   const awayId = fixture.teams?.away?.id;
   
-  // Find league ID from our mapping
   const apiLeagueId = fixture.league?.id;
   const leagueCode = Object.entries(LEAGUE_IDS).find(([_, id]) => id === apiLeagueId)?.[0] || 'PL';
 
@@ -133,7 +132,7 @@ export function getSupportedLeagues(): League[] {
 }
 
 export async function getUpcomingMatches(league?: string): Promise<Match[]> {
-  // Use mock data for future matches (API doesn't support future dates on free plan)
+  // Use mock data for future matches
   const matches = getMockMatches();
   return league ? matches.filter(m => m.leagueId === league) : matches;
 }
@@ -146,12 +145,9 @@ export async function getPastMatches(league?: string): Promise<Match[]> {
   try {
     const targets = league ? [league] : SUPPORTED_LEAGUES.map(l => l.id);
     
-    // Get recent past matches (last 2 weeks)
-    const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(fromDate.getDate() - 14);
-    const from = fromDate.toISOString().split('T')[0];
-    const to = today.toISOString().split('T')[0];
+    // Get matches from the 2024/25 season (August 2024 - May 2025)
+    const from = '2024-08-01';
+    const to = '2025-05-31';
 
     const buckets = await Promise.all(
       targets.map(code => {
@@ -164,7 +160,10 @@ export async function getPastMatches(league?: string): Promise<Match[]> {
     const allFixtures = buckets.flatMap(b => b.response || []);
     const mapped = await Promise.all(allFixtures.map(f => mapApiMatch(f, true)));
 
-    return mapped.sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime());
+    // Sort by date (newest first) and take last 50
+    return mapped
+      .sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime())
+      .slice(0, 50);
   } catch (e) {
     console.error('API error fetching past matches:', e);
     return [];
