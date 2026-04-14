@@ -292,16 +292,16 @@ export default function LanguageTest() {
                 </div>
                 {predictions[match.id] && (
                   <div className="mt-3 pt-3 border-t border-slate-700">
-                    <div className="text-xs text-slate-400 mb-2">{t.confidence}: {Math.round(predictions[match.id].confidence * 100)}%</div>
+                    <div className="text-xs text-slate-400 mb-2">{t.confidence}: {Math.round(predictions[match.id].confidence)}%</div>
                     <div className="flex text-xs text-slate-400 justify-between mb-1">
-                      <span className="text-green-400">{Math.round(predictions[match.id].homeProbability * 100)}%</span>
+                      <span className="text-green-400">{Math.round(predictions[match.id].homeWinProbability * 100)}%</span>
                       <span>{Math.round(predictions[match.id].drawProbability * 100)}%</span>
-                      <span className="text-blue-400">{Math.round(predictions[match.id].awayProbability * 100)}%</span>
+                      <span className="text-blue-400">{Math.round(predictions[match.id].awayWinProbability * 100)}%</span>
                     </div>
                     <div className="flex h-1.5 rounded-full overflow-hidden gap-0.5">
-                      <div className="bg-green-500 rounded-l-full" style={{ width: `${predictions[match.id].homeProbability * 100}%` }} />
+                      <div className="bg-green-500 rounded-l-full" style={{ width: `${predictions[match.id].homeWinProbability * 100}%` }} />
                       <div className="bg-slate-500" style={{ width: `${predictions[match.id].drawProbability * 100}%` }} />
-                      <div className="bg-blue-500 rounded-r-full" style={{ width: `${predictions[match.id].awayProbability * 100}%` }} />
+                      <div className="bg-blue-500 rounded-r-full" style={{ width: `${predictions[match.id].awayWinProbability * 100}%` }} />
                     </div>
                     <div className="flex text-[10px] text-slate-500 justify-between mt-1">
                       <span>{t.probHome}</span>
