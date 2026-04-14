@@ -8,7 +8,7 @@ import {
   Locale, 
   SUPPORTED_LOCALES,
   type LocaleConfig 
-} from '@sportsprognose/core/i18n/LocaleManager';
+} from '@sportsprognose/core';
 
 interface TranslationContextValue {
   locale: Locale;
