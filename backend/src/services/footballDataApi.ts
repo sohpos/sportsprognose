@@ -239,12 +239,14 @@ export async function getMatchById(id: string): Promise<Match | undefined> {
             id: String(match.team1.teamId),
             name: match.team1.teamName,
             shortName: match.team1.teamShortcut,
+            logo: match.team1.teamIconUrl || undefined,
             ...homeStats,
           },
           awayTeam: {
             id: String(match.team2.teamId),
             name: match.team2.teamName,
             shortName: match.team2.teamShortcut,
+            logo: match.team2.teamIconUrl || undefined,
             ...awayStats,
           },
         };

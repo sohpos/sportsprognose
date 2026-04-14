@@ -281,7 +281,7 @@ export default function LanguageTest() {
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="text-center flex-1">
-                    <div className="font-bold text-white text-lg">{match.homeTeam.shortName}</div>
+                    <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.homeTeam.logo && <img src={match.homeTeam.logo} alt="" className="w-5 h-5" />}{match.homeTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
                     {predictions[match.id] && (
                       <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.home}</div>
@@ -289,7 +289,7 @@ export default function LanguageTest() {
                   </div>
                   <div className="text-slate-500 px-4 text-xl">-</div>
                   <div className="text-center flex-1">
-                    <div className="font-bold text-white text-lg">{match.awayTeam.shortName}</div>
+                    <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.awayTeam.logo && <img src={match.awayTeam.logo} alt="" className="w-5 h-5" />}{match.awayTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
                     {predictions[match.id] && (
                       <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.away}</div>
