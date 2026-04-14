@@ -1,0 +1,6 @@
+{
+  "name": "SportsPrognose",
+  "tagline": "Intelligent Football Predictions",
+  "version": "Version {version}",
+  "description": "AI-powered football predictions using Poisson model"
+}

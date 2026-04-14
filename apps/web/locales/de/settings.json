@@ -1,0 +1,14 @@
+{
+  "language": "Sprache",
+  "theme": "Design",
+  "light": "Hell",
+  "dark": "Dunkel",
+  "system": "System",
+  "notifications": "Benachrichtigungen",
+  "apiKey": "API-Schlüssel",
+  "apiKeyPlaceholder": "football-data.org API-Schlüssel",
+  "saveSettings": "Einstellungen speichern",
+  "resetSettings": "Zurücksetzen",
+  "account": "Konto",
+  "logout": "Abmelden"
+}

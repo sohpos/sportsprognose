@@ -1,0 +1,6 @@
+{
+  "name": "SportsPrognose",
+  "tagline": "Intelligente Fußballvorhersagen",
+  "version": "Version {version}",
+  "description": "KI-gestützte Fußballvorhersagen mit Poisson-Modell"
+}

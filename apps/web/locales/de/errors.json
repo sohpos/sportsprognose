@@ -1,0 +1,15 @@
+{
+  "notFound": "Nicht gefunden",
+  "networkError": "Netzwerkfehler",
+  "serverError": "Serverfehler",
+  "unauthorized": "Nicht autorisiert",
+  "invalidApiKey": "Ungültiger API-Schlüssel",
+  "rateLimited": "Zu viele Anfragen",
+  "timeout": "Zeitüberschreitung",
+  "parseError": "Parsing-Fehler",
+  "validationError": "Validierungsfehler",
+  "unknown": "Unbekannter Fehler",
+  "retry": "Erneut versuchen",
+  "noData": "Keine Daten verfügbar",
+  "maintenance": "Wartungsarbeiten"
+}

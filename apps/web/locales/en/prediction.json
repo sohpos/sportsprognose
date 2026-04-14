@@ -1,0 +1,26 @@
+{
+  "win": "Win",
+  "draw": "Draw",
+  "loss": "Loss",
+  "over": "Over {goals} goals",
+  "under": "Under {goals} goals",
+  "btts": "Both teams to score",
+  "noBtts": "Both teams not to score",
+  "bttsYes": "Yes - Both score",
+  "bttsNo": "No - Not both",
+  "correctScore": "Correct score",
+  "homeWin": "Home win",
+  "awayWin": "Away win",
+  "confidence": "Confidence",
+  "probability": "Probability",
+  "odds": "Odds",
+  "predicted": "Predicted",
+  "actual": "Actual",
+  "expected": "Expected",
+  "actualGoals": "{team} goals",
+  "Algorithms": {
+    "poisson": "Poisson distribution",
+    "elo": "Elo rating",
+    "hybrid": "Hybrid model"
+  }
+}

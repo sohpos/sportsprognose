@@ -1,0 +1,26 @@
+{
+  "win": "Sieg",
+  "draw": "Unentschieden",
+  "loss": "Niederlage",
+  "over": "Über {goals} Tore",
+  "under": "Unter {goals} Tore",
+  "btts": "Beide treffen",
+  "noBtts": "Beide treffen nicht",
+  "bttsYes": "Ja - Beide treffen",
+  "bttsNo": "Nein - Nicht beide",
+  "correctScore": "Exaktes Ergebnis",
+  "homeWin": "Heimsieg",
+  "awayWin": "Auswärtssieg",
+  "confidence": "Konfidenz",
+  "probability": "Wahrscheinlichkeit",
+  "odds": "Quote",
+  "predicted": "Vorhergesagt",
+  "actual": "Ergebnis",
+  "expected": "Erwartet",
+  "actualGoals": "Tore {team}",
+  " Algorithms": {
+    "poisson": "Poisson-Verteilung",
+    "elo": "Elo-Rating",
+    "hybrid": "Hybrid-Modell"
+  }
+}

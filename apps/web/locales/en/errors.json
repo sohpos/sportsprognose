@@ -1,0 +1,15 @@
+{
+  "notFound": "Not found",
+  "networkError": "Network error",
+  "serverError": "Server error",
+  "unauthorized": "Unauthorized",
+  "invalidApiKey": "Invalid API key",
+  "rateLimited": "Rate limited",
+  "timeout": "Timeout",
+  "parseError": "Parse error",
+  "validationError": "Validation error",
+  "unknown": "Unknown error",
+  "retry": "Retry",
+  "noData": "No data available",
+  "maintenance": "Maintenance"
+}
