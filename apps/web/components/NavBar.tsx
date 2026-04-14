@@ -2,15 +2,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LanguageSelector } from './LanguageSelector';
+import { useState, useEffect } from 'react';
 
-const links = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/matches', label: 'Spiele' },
-  { href: '/accuracy', label: 'Trefferquote' },
-];
+const translations: Record<string, Record<string, string>> = {
+  de: { dashboard: 'Dashboard', matches: 'Spiele', accuracy: 'Trefferquote', active: 'Poisson-Modell aktiv' },
+  en: { dashboard: 'Dashboard', matches: 'Matches', accuracy: 'Accuracy', active: 'Poisson Model active' },
+  tr: { dashboard: 'Panel', matches: 'Maçlar', accuracy: 'Doğruluk', active: 'Poisson Modeli aktif' },
+};
 
 export default function NavBar() {
   const pathname = usePathname();
+  const [locale, setLocale] = useState('de');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sportsprognose_locale');
+    if (saved && translations[saved]) setLocale(saved);
+  }, []);
+
+  const t = translations[locale] || translations['de'];
+
+  const links = [
+    { href: '/', label: t.dashboard },
+    { href: '/matches', label: t.matches },
+    { href: '/accuracy', label: t.accuracy },
+  ];
 
   return (
     <nav
@@ -48,7 +63,7 @@ export default function NavBar() {
           <LanguageSelector />
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            <span>Poisson-Modell aktiv</span>
+            <span>{t.active}</span>
           </div>
         </div>
       </div>
