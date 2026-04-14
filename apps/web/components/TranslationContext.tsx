@@ -1,16 +1,14 @@
-// apps/web/components/TranslationContext.tsx
-
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { SUPPORTED_LOCALES } from '@sportsprognose/core';
 import type { Locale, LocaleConfig } from '@sportsprognose/core';
+import { getGlobalLocale, subscribeToLocale } from './LanguageSelector';
 
 const STORAGE_KEY = 'sportsprognose_locale';
 
 // Simple translation function
 function translate(key: string, locale: Locale): string {
-  // Basic translations
   const translations: Record<Locale, Record<string, string>> = {
     de: {
       'app:title': 'KI-Fußballprognosen',
@@ -103,37 +101,35 @@ interface TranslationContextValue {
 const TranslationContext = createContext<TranslationContextValue | null>(null);
 
 export function TranslationProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('de');
+  const [locale, setLocale] = useState<Locale>('de');
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load saved locale on mount
+  // Initialize and subscribe to language changes
   useEffect(() => {
+    // Load saved locale
     const saved = localStorage.getItem(STORAGE_KEY) as Locale;
     if (saved && saved in SUPPORTED_LOCALES) {
-      setLocaleState(saved);
+      setLocale(saved);
     }
     setIsInitialized(true);
 
-    // Listen for locale changes from LanguageSelector
-    const handler = (e: Event) => {
-      const newLocale = (e as CustomEvent).detail as Locale;
-      setLocaleState(newLocale);
-    };
-    window.addEventListener('localechange', handler);
-    return () => window.removeEventListener('localechange', handler);
-  }, []);
+    // Subscribe to language changes from LanguageSelector
+    const unsubscribe = subscribeToLocale(() => {
+      const newLocale = getGlobalLocale();
+      setLocale(newLocale);
+    });
 
-  // Simple setLocale that saves to localStorage
-  const handleSetLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
-    localStorage.setItem(STORAGE_KEY, newLocale);
+    return unsubscribe;
   }, []);
 
   const value: TranslationContextValue = {
     locale,
     config: SUPPORTED_LOCALES[locale],
     isInitialized,
-    setLocale: handleSetLocale,
+    setLocale: (newLocale: Locale) => {
+      localStorage.setItem(STORAGE_KEY, newLocale);
+      setLocale(newLocale);
+    },
     t: (key: string) => translate(key, locale),
     d: (date: Date | string, format = 'short') => {
       const d = new Date(date);
