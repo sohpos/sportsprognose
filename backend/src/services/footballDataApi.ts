@@ -12,12 +12,20 @@ const SUPPORTED_LEAGUES: League[] = [
   { id: 'CL', name: 'Champions League', country: 'Europe' },
 ];
 
-// League ID mapping for api-songs.io
+// League ID mapping for api-sports.io
 const LEAGUE_IDS: Record<string, number> = {
   BL1: 2002, // Bundesliga
   PL: 39,    // Premier League
   PD: 140,   // La Liga
   CL: 2,     // Champions League
+};
+
+// Season mapping (current season)
+const LEAGUE_SEASONS: Record<string, number> = {
+  BL1: 2024,
+  PL: 2024,
+  PD: 2024,
+  CL: 2024,
 };
 
 async function apiGet(endpoint: string): Promise<any> {
@@ -56,7 +64,8 @@ function resultChar(fixture: any, teamId: number): string {
 
 async function getTeamStats(teamId: number): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
-    const data = await apiGet(`/fixtures?team=${teamId}&status=FT&limit=10`);
+    const season = LEAGUE_SEASONS.PL; // default season
+    const data = await apiGet(`/fixtures?team=${teamId}&season=${season}&status=FT&limit=10`);
     const fixtures = data.response || [];
 
     if (!fixtures.length) {
@@ -138,7 +147,8 @@ export async function getUpcomingMatches(league?: string): Promise<Match[]> {
     const buckets = await Promise.all(
       targets.map(code => {
         const leagueId = LEAGUE_IDS[code];
-        return apiGet(`/fixtures?league=${leagueId}&from=${from}&to=${to}&status=NS`);
+        const season = LEAGUE_SEASONS[code] || 2024;
+        return apiGet(`/fixtures?league=${leagueId}&season=${season}&from=${from}&to=${to}&status=NS`);
       })
     );
 
