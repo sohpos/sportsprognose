@@ -326,19 +326,13 @@ export default function LanguageTest() {
     </div>
   );
 }
-// Score Matrix Component
+// Score Matrix Component - Full 6x6 grid
 function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
   const [expanded, setExpanded] = useState(false);
   const matrix = prediction.scoreMatrix || [];
   const maxGoals = 5;
   
-  // Get top 5 most likely scores
-  const topScores = [...matrix]
-    .filter(s => s.homeGoals <= maxGoals && s.homeGoals <= maxGoals)
-    .sort((a, b) => b.probability - a.probability)
-    .slice(0, 5);
-  
-  const maxProb = topScores[0]?.probability || 1;
+  if (!matrix.length) return null;
 
   return (
     <div className="mt-3">
@@ -346,27 +340,45 @@ function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
         onClick={() => setExpanded(!expanded)}
         className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1"
       >
-        {expanded ? '▼' : '▶'} {t.showDetails || 'Details'}
+        {expanded ? '▼' : '▶'} {t.showDetails || 'Score-Matrix'}
       </button>
       
       {expanded && (
-        <div className="mt-2 p-2 bg-slate-800 rounded text-xs">
-          <div className="text-slate-400 mb-2">{t.topScores || 'Top 5 Ergebnisse'}:</div>
-          {topScores.map((s: any, i: number) => (
-            <div key={i} className="flex items-center gap-2 mb-1">
-              <span className="text-white font-mono w-8">{s.homeGoals}:{s.awayGoals}</span>
-              <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full" 
-                  style={{ 
-                    width: `${(s.probability / maxProb) * 100}%`,
-                    backgroundColor: i === 0 ? '#00e676' : '#2979ff'
-                  }} 
-                />
-              </div>
-              <span className="text-slate-400 w-10 text-right">{(s.probability * 100).toFixed(1)}%</span>
-            </div>
-          ))}
+        <div className="mt-2 overflow-x-auto">
+          <table className="text-xs text-center w-full" style={{ borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th className="p-1"></th>
+                {Array.from({ length: maxGoals + 1 }).map((_, a) => (
+                  <th key={a} className="p-1 bg-slate-700 text-slate-300">{a}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {matrix.filter((s: any) => s.homeGoals <= maxGoals).map((row: any, h: number) => (
+                <tr key={h}>
+                  <th className="p-1 bg-slate-700 text-slate-300">{h}</th>
+                  {Array.from({ length: maxGoals + 1 }).map((_, a) => {
+                    const cell = matrix.find((s: any) => s.homeGoals === h && s.awayGoals === a);
+                    const prob = cell?.probability || 0;
+                    const intensity = Math.min(prob * 5, 1);
+                    return (
+                      <td 
+                        key={a} 
+                        className="p-1"
+                        style={{ 
+                          backgroundColor: `rgba(0, 230, 118, ${intensity * 0.8})`,
+                          color: intensity > 0.5 ? '#0a0e1a' : '#e2e8f0',
+                        }}
+                      >
+                        {(prob * 100).toFixed(1)}%
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
