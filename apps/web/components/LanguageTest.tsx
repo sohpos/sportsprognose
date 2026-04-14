@@ -27,7 +27,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Trefferquote',
     active: 'Poisson-Modell aktiv',
     leagueAll: 'Alle Ligen',
-    showAll: 'Alle anzeigen', showDetails: 'Details', topScores: 'Top 5 Ergebnisse',
+    showAll: 'Alle anzeigen', showDetails: 'Details', topScores: 'Top 6 Ergebnisse',
     loading: 'Laden...',
     noData: 'Keine Daten verfügbar',
     prevWeek: '← Vorherige Woche',
@@ -62,7 +62,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Accuracy',
     active: 'Poisson Model active',
     leagueAll: 'All Leagues',
-    showAll: 'Show all', showDetails: 'Details', topScores: 'Top 5 Scores',
+    showAll: 'Show all', showDetails: 'Details', topScores: 'Top 6 Scores',
     loading: 'Loading...',
     noData: 'No data available',
     prevWeek: '← Previous week',
@@ -97,7 +97,7 @@ const translations: Record<string, Record<string, any>> = {
     navAccuracy: 'Doğruluk',
     active: 'Poisson Modeli aktif',
     leagueAll: 'Tüm Ligler',
-    showAll: 'Tümünü göster', showDetails: 'Detaylar', topScores: 'En olası 5 sonuç',
+    showAll: 'Tümünü göster', showDetails: 'Detaylar', topScores: 'En olası 6 sonuç',
     loading: 'Yükleniyor...',
     noData: 'Veri yok',
     prevWeek: '← Önceki hafta',
@@ -326,11 +326,11 @@ export default function LanguageTest() {
     </div>
   );
 }
-// Score Matrix Component - Full 6x6 grid
+// Score Matrix Component - 6x6 grid (goals 0-5)
 function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
   const [expanded, setExpanded] = useState(false);
   const matrix = prediction.scoreMatrix || [];
-  const maxGoals = 5;
+  const maxGoals = 5; // Shows 0-5 = 6 rows
   
   if (!matrix.length) return null;
 
