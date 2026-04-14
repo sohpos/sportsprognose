@@ -164,15 +164,18 @@ class LocaleManager {
       keyPath = nsKey;
     }
 
-    // Try current locale first
+    // 1. Try current locale
     let value = this.getTranslation(this._currentLocale, namespace, keyPath);
     
-    // Fallback to default language (EN)
+    // 2. Fallback to default language (EN)
     if (value === undefined) {
       value = this.getTranslation(this.fallbackLocale, namespace, keyPath);
     }
     
+    // 3. If not found → return key + logging for debugging
     if (value === undefined) {
+      const missingKey = `${this._currentLocale}:${namespace}:${keyPath}`;
+      console.warn(`[i18n] Missing key: "${missingKey}" (fallback: ${this.fallbackLocale})`);
       return key;
     }
 
@@ -190,6 +193,35 @@ class LocaleManager {
     const localeData = this.translations.get(locale);
     if (!localeData || !localeData[namespace]) return undefined;
     return getNestedValue(localeData[namespace], keyPath);
+  }
+
+  // Check if key exists (useful for conditional rendering)
+  hasKey(key: string): boolean {
+    const [nsKey, ...rest] = key.split(':');
+    let namespace: Namespace | undefined;
+    let keyPath: string;
+    
+    if (rest.length > 0) {
+      namespace = nsKey as Namespace;
+      keyPath = rest.join(':');
+    } else {
+      const prefix = nsKey.split('.')[0];
+      namespace = NAMESPACES.includes(prefix as Namespace) ? prefix as Namespace : 'ui';
+      keyPath = nsKey;
+    }
+    
+    const currentValue = this.getTranslation(this._currentLocale, namespace, keyPath);
+    const fallbackValue = this.getTranslation(this.fallbackLocale, namespace, keyPath);
+    
+    return currentValue !== undefined || fallbackValue !== undefined;
+  }
+
+  // Get missing keys for debugging/reporting
+  getMissingKeys(): string[] {
+    const missing: string[] = [];
+    // This would track keys that were requested but not found
+    // In production, you might want to collect these in a Set
+    return missing;
   }
 
   // 4. Formatting functions for dynamic data
