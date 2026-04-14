@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { setLocale, getLocale } from '../lib/simple-i18n';
 
 const LANGUAGES = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
@@ -12,20 +11,33 @@ const LANGUAGES = [
   { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
 ];
 
+const STORAGE_KEY = 'sportsprognose_locale';
+
 export function LanguageSelector() {
   // Get current locale from localStorage
-  const currentLocale = getLocale();
+  const [currentLocale, setCurrentLocale] = React.useState('de');
 
-  // Handle change - IMMEDIATE reload, no waiting
+  // Load on mount
+  React.useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      setCurrentLocale(saved);
+    }
+  }, []);
+
+  // Handle change - IMMEDIATE reload with debug
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value;
     
-    // Save to localStorage
-    localStorage.setItem('sportsprognose_locale', newLocale);
+    // Save to localStorage first
+    localStorage.setItem(STORAGE_KEY, newLocale);
     
-    // RELOAD THE PAGE NOW!
+    // Log to console for debugging
+    console.log('Setting locale to:', newLocale);
+    console.log('localStorage value:', localStorage.getItem(STORAGE_KEY));
+    
+    // RELOAD NOW!
     window.location.reload();
-    return;
   };
 
   return (
