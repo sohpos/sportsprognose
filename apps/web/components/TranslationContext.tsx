@@ -3,12 +3,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { SUPPORTED_LOCALES } from '@sportsprognose/core';
 import type { Locale, LocaleConfig } from '@sportsprognose/core';
-import { getGlobalLocale, subscribeToLocale } from './LanguageSelector';
 
 const STORAGE_KEY = 'sportsprognose_locale';
 
-// Simple translation function
-function translate(key: string, locale: Locale): string {
+// Simple translation function (inline translations)
+function t(key: string, locale: Locale): string {
   const translations: Record<Locale, Record<string, string>> = {
     de: {
       'app:title': 'KI-Fußballprognosen',
@@ -101,36 +100,39 @@ interface TranslationContextValue {
 const TranslationContext = createContext<TranslationContextValue | null>(null);
 
 export function TranslationProvider({ children }: { children: React.ReactNode }) {
+  // Exactly like user's example: useState for language
   const [locale, setLocale] = useState<Locale>('de');
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize and subscribe to language changes
+  // Load saved language on mount - like user's useEffect
   useEffect(() => {
-    // Load saved locale
     const saved = localStorage.getItem(STORAGE_KEY) as Locale;
     if (saved && saved in SUPPORTED_LOCALES) {
       setLocale(saved);
     }
     setIsInitialized(true);
-
-    // Subscribe to language changes from LanguageSelector
-    const unsubscribe = subscribeToLocale(() => {
-      const newLocale = getGlobalLocale();
-      setLocale(newLocale);
-    });
-
-    return unsubscribe;
   }, []);
 
+  // Listen for language changes from LanguageSelector - like user's pattern
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const newLocale = (e as CustomEvent).detail as Locale;
+      setLocale(newLocale);
+    };
+    window.addEventListener('localechanged', handler);
+    return () => window.removeEventListener('localechanged', handler);
+  }, []);
+
+  // Exactly like user's context value
   const value: TranslationContextValue = {
     locale,
     config: SUPPORTED_LOCALES[locale],
     isInitialized,
     setLocale: (newLocale: Locale) => {
-      localStorage.setItem(STORAGE_KEY, newLocale);
       setLocale(newLocale);
+      localStorage.setItem(STORAGE_KEY, newLocale);
     },
-    t: (key: string) => translate(key, locale),
+    t: (key: string) => t(key, locale),
     d: (date: Date | string, format = 'short') => {
       const d = new Date(date);
       if (format === 'short') return d.toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US');
@@ -151,7 +153,7 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
   );
 }
 
-// Hook for components
+// Hook - exactly like user's useTranslation
 export function useTranslation() {
   const context = useContext(TranslationContext);
   if (!context) {
@@ -172,7 +174,6 @@ export function useTranslation() {
   return context;
 }
 
-// Simple hook for utilities
 export function useTranslations() {
   const { t, d, n, p, c, o } = useTranslation();
   return { t, d, n, p, c, o };

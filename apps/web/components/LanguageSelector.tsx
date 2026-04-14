@@ -1,49 +1,40 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { SUPPORTED_LOCALES, type Locale } from '@sportsprognose/core';
 
 const STORAGE_KEY = 'sportsprognose_locale';
 
-// Global state for locale - simple approach
-let globalLocale: Locale = 'de';
-let listeners: Set<() => void> = new Set();
-
-export function getGlobalLocale(): Locale {
-  return globalLocale;
-}
-
-export function setGlobalLocale(loc: Locale) {
-  globalLocale = loc;
-  localStorage.setItem(STORAGE_KEY, loc);
-  listeners.forEach(fn => fn());
-}
-
-export function subscribeToLocale(fn: () => void) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
-
 export function LanguageSelector() {
-  const [, update] = useState(0);
-  
+  // Exactly like user's example: useState to hold language
+  const [locale, setLocale] = useState<Locale>('de');
+
+  // Load saved language on mount - like user's useEffect
   useEffect(() => {
-    // Load saved locale
     const saved = localStorage.getItem(STORAGE_KEY) as Locale;
     if (saved && saved in SUPPORTED_LOCALES) {
-      globalLocale = saved;
+      setLocale(saved);
     }
   }, []);
 
+  // Exactly like user's changeLang function
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value as Locale;
-    setGlobalLocale(newLocale);
-    update(n => n + 1); // Force re-render
+    
+    // 1. Update React state (like user's setLang)
+    setLocale(newLocale);
+    
+    // 2. Save to localStorage (like user's localStorage.setItem)
+    localStorage.setItem(STORAGE_KEY, newLocale);
+    
+    // 3. Force re-render of all subscribers by dispatching event
+    window.dispatchEvent(new CustomEvent('localechanged', { detail: newLocale }));
   };
 
+  // Exactly like user's JSX: value=lang onChange=changeLang
   return (
     <select
-      value={globalLocale}
+      value={locale}
       onChange={handleChange}
       className="px-3 py-2 rounded-lg text-sm bg-slate-800 border border-slate-600 text-white hover:border-green-400 focus:border-green-400 focus:outline-none cursor-pointer transition-colors"
     >
@@ -54,4 +45,10 @@ export function LanguageSelector() {
       ))}
     </select>
   );
+}
+
+// Get current locale for other components
+export function getCurrentLocale(): Locale {
+  if (typeof window === 'undefined') return 'de';
+  return (localStorage.getItem(STORAGE_KEY) as Locale) || 'de';
 }
