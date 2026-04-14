@@ -13,7 +13,7 @@ const LANGUAGES = [
   { code: 'it', name: 'Italiano', flag: '🇮🇹' },
 ];
 
-export function SimpleLanguageSelector() {
+export function LanguageSelector() {
   const [locale, setLocaleState] = useState('de');
 
   // Load initial locale
