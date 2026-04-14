@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 const LANGUAGES = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
@@ -17,23 +17,22 @@ export function LanguageSelector() {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value;
     
-    // Save to localStorage
+    // Save to localStorage FIRST
     localStorage.setItem(STORAGE_KEY, newLocale);
     
-    // Show confirmation
-    alert('Sprache geändert zu: ' + newLocale + '\nDie Seite wird neu geladen...');
+    const savedValue = localStorage.getItem(STORAGE_KEY);
     
-    // Reload
-    window.location.reload();
+    alert('Sprache gesetzt auf: ' + newLocale + '\nGespeichert: ' + savedValue + '\n\nNach OK wird neu geladen...');
+    
+    // Wait a moment then reload (give time to see alert)
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
-
-  // On first load - check localStorage but don't use it to set initial value
-  // This prevents hydration mismatch
-  const initialValue = 'de'; // Always start with 'de', then in useEffect it will update
 
   return (
     <select 
-      defaultValue={initialValue}
+      defaultValue="de"
       onChange={handleChange}
       className="px-3 py-2 rounded-lg text-sm bg-slate-800 border border-slate-600 text-white hover:border-green-400 focus:border-green-400 focus:outline-none cursor-pointer transition-colors"
     >
