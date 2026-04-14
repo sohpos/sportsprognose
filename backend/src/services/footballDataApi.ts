@@ -1,6 +1,23 @@
 import { League, Match, Team } from '../types';
 import { getMockMatches, getMockMatchById, LEAGUES as MOCK_LEAGUES } from './mockData';
 
+// Cache for API responses
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCached<T>(key: string): T | null {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data as T;
+  }
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
 // football-data.org API (primary)
 const FD_BASE_URL = 'https://api.football-data.org/v4';
 const FD_API_KEY = process.env.FOOTBALL_API_KEY;
@@ -29,10 +46,17 @@ const SEASON_PAST = 2024;
 const SEASON_FUTURE = 2025;
 
 async function fdApiGet(endpoint: string): Promise<any> {
+  const cacheKey = `fd:${endpoint}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+  
   if (!FD_API_KEY) throw new Error('FOOTBALL_API_KEY missing');
   const res = await fetch(`${FD_BASE_URL}${endpoint}`, { headers: { 'X-Auth-Token': FD_API_KEY } });
   if (!res.ok) throw new Error(`football-data.org ${res.status}`);
-  return res.json();
+  
+  const data = await res.json();
+  setCache(cacheKey, data);
+  return data;
 }
 
 async function asApiGet(endpoint: string): Promise<any> {
@@ -43,9 +67,25 @@ async function asApiGet(endpoint: string): Promise<any> {
 }
 
 async function oldbApiGet(endpoint: string): Promise<any> {
+  const cacheKey = `oldb:${endpoint}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+  
   const res = await fetch(`${OLDB_BASE_URL}${endpoint}`);
-  if (!res.ok) throw new Error(`openligadb ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    // If rate limited, try to use cache or return empty
+    if (res.status === 429) {
+      const cachedData = getCached(`oldb:fallback:${endpoint}`);
+      if (cachedData) return cachedData;
+      throw new Error('openligadb 429');
+    }
+    throw new Error(`openligadb ${res.status}`);
+  }
+  
+  const data = await res.json();
+  setCache(cacheKey, data);
+  setCache(`oldb:fallback:${endpoint}`, data); // Store as fallback
+  return data;
 }
 
 async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
