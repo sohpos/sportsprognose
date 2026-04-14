@@ -1,8 +1,7 @@
 // packages/core/src/i18n/LocaleManager.ts
-// UTF-8 encoded multi-language support with namespaces and fallback
+// UTF-8 encoded multi-language support with namespaces, fallback, persistence & dynamic loading
 
 export type Locale = 'de' | 'en' | 'es' | 'fr' | 'it';
-
 export type Namespace = 'app' | 'prediction' | 'errors' | 'ui' | 'match' | 'league' | 'settings';
 
 export const NAMESPACES: Namespace[] = [
@@ -18,6 +17,16 @@ export interface LocaleConfig {
   flag: string;
 }
 
+// Detect browser/System language on startup
+function detectSystemLocale(): Locale {
+  if (typeof navigator === 'undefined') return 'de';
+  const browserLang = navigator.language.split('-')[0];
+  if (browserLang in { de: 1, en: 1, es: 1, fr: 1, it: 1 }) {
+    return browserLang as Locale;
+  }
+  return 'de';
+}
+
 export const SUPPORTED_LOCALES: Record<Locale, LocaleConfig> = {
   de: { code: 'de', name: 'Deutsch', dateFormat: 'dd.MM.yyyy', numberFormat: 'de-DE', currency: 'EUR', flag: '🇩🇪' },
   en: { code: 'en', name: 'English', dateFormat: 'MM/dd/yyyy', numberFormat: 'en-US', currency: 'USD', flag: '🇬🇧' },
@@ -27,10 +36,9 @@ export const SUPPORTED_LOCALES: Record<Locale, LocaleConfig> = {
 };
 
 const STORAGE_KEY = 'sportsprognose_locale';
-const DEFAULT_LOCALE: Locale = 'de';
 const DEFAULT_FALLBACK: Locale = 'en';
 
-// Nested key getter
+// Get nested value from object (supports keys like "Algorithms.poisson")
 function getNestedValue(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== 'object') return undefined;
   const keys = path.split('.');
@@ -45,51 +53,84 @@ function getNestedValue(obj: unknown, path: string): unknown {
   return current;
 }
 
+type TranslationData = Record<string, Record<string, unknown>>;
+
 class LocaleManager {
-  private currentLocale: Locale = DEFAULT_LOCALE;
+  private _currentLocale: Locale;
   private fallbackLocale: Locale = DEFAULT_FALLBACK;
-  private translations: Map<Locale, Record<string, Record<string, unknown>>> = new Map();
+  private translations: Map<Locale, TranslationData> = new Map();
   private loadedLocales: Set<Locale> = new Set();
   private listeners: Set<() => void> = new Set();
+  private initialized: boolean = false;
 
   constructor() {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && stored in SUPPORTED_LOCALES) {
-        this.currentLocale = stored as Locale;
-      }
-    }
+    // 1. Load saved preference or detect system language
+    const saved = this.loadFromStorage();
+    this._currentLocale = saved || detectSystemLocale();
   }
 
-  getLocale(): Locale {
-    return this.currentLocale;
+  // Initialize on app start
+  async init(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadAllNamespaces(this._currentLocale);
+    this.initialized = true;
+    this.notifyListeners();
   }
 
-  getFallback(): Locale {
+  private loadFromStorage(): Locale | null {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored && stored in SUPPORTED_LOCALES ? stored as Locale : null;
+  }
+
+  private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, this._currentLocale);
+  }
+
+  // Public getter for active locale
+  get locale(): Locale {
+    return this._currentLocale;
+  }
+  
+  get currentLocale(): Locale {
+    return this._currentLocale;
+  }
+
+  get fallback(): Locale {
     return this.fallbackLocale;
   }
 
-  getConfig(): LocaleConfig {
-    return SUPPORTED_LOCALES[this.currentLocale];
+  get config(): LocaleConfig {
+    return SUPPORTED_LOCALES[this._currentLocale];
   }
 
+  getConfig(): LocaleConfig {
+    return SUPPORTED_LOCALES[this._currentLocale];
+  }
+
+  // 2. Dynamic language switching without restart
   async setLocale(locale: Locale): Promise<void> {
     if (!(locale in SUPPORTED_LOCALES)) {
       console.warn(`Locale ${locale} not supported`);
       return;
     }
-    this.currentLocale = locale;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, locale);
-    }
-    this.notifyListeners();
+    
+    this._currentLocale = locale;
+    
+    // 3. Persist to localStorage
+    this.saveToStorage();
+    
+    // Load if not already loaded
     if (!this.loadedLocales.has(locale)) {
       await this.loadAllNamespaces(locale);
     }
+    
+    this.notifyListeners();
   }
 
   async loadAllNamespaces(locale: Locale): Promise<void> {
-    const data: Record<string, Record<string, unknown>> = {};
+    const data: TranslationData = {};
     for (const ns of NAMESPACES) {
       try {
         const res = await fetch(`/locales/${locale}/${ns}.json`);
@@ -104,43 +145,38 @@ class LocaleManager {
     this.loadedLocales.add(locale);
   }
 
-  // Main translation function with namespace support
+  // Main translation function
   t(key: string, params?: Record<string, string | number>): string {
-    // Parse namespace:key format (e.g., "prediction.win" or "errors.notFound")
     const [nsKey, ...rest] = key.split(':');
     let namespace: Namespace | undefined;
     let keyPath: string;
     
+    // Parse namespace:key format
     if (rest.length > 0) {
-      // Format: namespace:key
       namespace = nsKey as Namespace;
       keyPath = rest.join(':');
     } else {
       // Auto-detect namespace from key prefix
       const prefix = nsKey.split('.')[0];
-      if (NAMESPACES.includes(prefix as Namespace)) {
-        namespace = prefix as Namespace;
-        keyPath = nsKey.slice(prefix.length + 1);
-      } else {
-        namespace = 'ui';
-        keyPath = nsKey;
-      }
+      namespace = NAMESPACES.includes(prefix as Namespace) 
+        ? prefix as Namespace 
+        : 'ui';
+      keyPath = nsKey;
     }
 
-    // Try current locale
-    let value = this.getTranslation(this.currentLocale, namespace, keyPath);
+    // Try current locale first
+    let value = this.getTranslation(this._currentLocale, namespace, keyPath);
     
-    // Fallback to default language
+    // Fallback to default language (EN)
     if (value === undefined) {
       value = this.getTranslation(this.fallbackLocale, namespace, keyPath);
     }
     
-    // Return key if not found
     if (value === undefined) {
       return key;
     }
 
-    // Replace parameters
+    // Replace parameters (e.g., {goals} -> "2.5")
     if (params && typeof value === 'string') {
       return value.replace(/\{(\w+)\}/g, (_, pk) => 
         String(params[pk] ?? `{${pk}}`)
@@ -150,40 +186,56 @@ class LocaleManager {
     return typeof value === 'string' ? value : key;
   }
 
-  private getTranslation(locale: Locale, namespace: Namespace | undefined, keyPath: string): unknown {
-    if (!namespace) return undefined;
+  private getTranslation(locale: Locale, namespace: Namespace, keyPath: string): unknown {
     const localeData = this.translations.get(locale);
     if (!localeData || !localeData[namespace]) return undefined;
     return getNestedValue(localeData[namespace], keyPath);
   }
 
-  // Formatting functions
-  d(date: Date | string): string {
-    const config = SUPPORTED_LOCALES[this.currentLocale];
+  // 4. Formatting functions for dynamic data
+  d(date: Date | string, format?: 'short' | 'long' | 'time'): string {
+    const cfg = SUPPORTED_LOCALES[this._currentLocale];
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString(config.numberFormat);
+    
+    if (format === 'time') {
+      return d.toLocaleTimeString(cfg.numberFormat, { hour: '2-digit', minute: '2-digit' });
+    }
+    if (format === 'long') {
+      return d.toLocaleDateString(cfg.numberFormat, { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+    }
+    return d.toLocaleDateString(cfg.numberFormat);
   }
 
   n(value: number, decimals = 2): string {
-    const config = SUPPORTED_LOCALES[this.currentLocale];
-    return value.toLocaleString(config.numberFormat, {
+    const cfg = SUPPORTED_LOCALES[this._currentLocale];
+    return value.toLocaleString(cfg.numberFormat, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     });
   }
 
-  p(probability: number): string {
-    return this.n(probability * 100, 1) + '%';
+  // Format probability as percentage
+  p(probability: number, decimals = 1): string {
+    return this.n(probability * 100, decimals) + '%';
   }
 
-  c(amount: number): string {
-    const config = SUPPORTED_LOCALES[this.currentLocale];
-    return new Intl.NumberFormat(config.numberFormat, {
+  // Format currency/odds
+  c(amount: number, currency?: string): string {
+    const cfg = SUPPORTED_LOCALES[this._currentLocale];
+    return new Intl.NumberFormat(cfg.numberFormat, {
       style: 'currency',
-      currency: config.currency,
+      currency: currency || cfg.currency,
     }).format(amount);
   }
 
+  // Odds (decimal format 1.xx - sprachabhängig)
+  o(odds: number): string {
+    return this.n(odds, 2);
+  }
+
+  // Subscribe to locale changes
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -194,12 +246,21 @@ class LocaleManager {
   }
 }
 
+// Singleton instance
 export const localeManager = new LocaleManager();
 
-// Helper object for direct usage
+// Helper exports
 export const t = (key: string, params?: Record<string, string | number>) => 
   localeManager.t(key, params);
-export const d = (date: Date | string) => localeManager.d(date);
-export const n = (value: number, decimals?: number) => localeManager.n(value, decimals);
-export const p = (probability: number) => localeManager.p(probability);
-export const c = (amount: number) => localeManager.c(amount);
+export const d = (date: Date | string, format?: 'short' | 'long' | 'time') => 
+  localeManager.d(date, format);
+export const n = (value: number, decimals?: number) => 
+  localeManager.n(value, decimals);
+export const p = (probability: number, decimals?: number) => 
+  localeManager.p(probability, decimals);
+export const c = (amount: number, currency?: string) => 
+  localeManager.c(amount, currency);
+export const o = (odds: number) => localeManager.o(odds);
+
+// React hooks re-export from TranslationContext
+export { useTranslation, useTranslations, TranslationProvider } from './TranslationContext';
