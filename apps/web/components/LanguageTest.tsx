@@ -355,11 +355,11 @@ function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
               </tr>
             </thead>
             <tbody>
-              {matrix.filter((s: any) => s.homeGoals <= maxGoals).map((row: any, h: number) => (
+              {matrix.filter((s: any) => s.homeGoals <= maxGoals).slice(0, 6).map((row: any, h: number) => (
                 <tr key={h}>
-                  <th className="p-1 bg-slate-700 text-slate-300">{h}</th>
+                  <th className="p-1 bg-slate-700 text-slate-300">{row.homeGoals}</th>
                   {Array.from({ length: maxGoals + 1 }).map((_, a) => {
-                    const cell = matrix.find((s: any) => s.homeGoals === h && s.awayGoals === a);
+                    const cell = matrix.find((s: any) => s.homeGoals === row.homeGoals && s.awayGoals === a);
                     const prob = cell?.probability || 0;
                     const intensity = Math.min(prob * 5, 1);
                     return (
