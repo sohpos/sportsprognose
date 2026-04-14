@@ -166,7 +166,43 @@ export async function getPastMatches(league?: string): Promise<Match[]> {
 export async function getMatchById(id: string): Promise<Match | undefined> {
   if (id.startsWith('mock-')) return getMockMatchById(id);
   if (id.startsWith('oldb-')) {
-    // Could implement detailed match lookup
+    // For OpenLigaDB matches, we need to fetch from the full list or use fallback
+    const numericId = id.replace('oldb-', '');
+    try {
+      const data = await oldbApiGet(`/getmatchdata/bl1/${SEASON_FUTURE}`);
+      const match = data?.find((m: any) => String(m.matchID) === numericId);
+      if (match) {
+        const homeStats = await getTeamStatsFromOpenligaDB(match.team1.teamId);
+        const awayStats = await getTeamStatsFromOpenligaDB(match.team2.teamId);
+        return {
+          id: `oldb-${match.matchID}`,
+          leagueId: 'BL1',
+          leagueName: 'Bundesliga',
+          utcDate: match.matchDateTime,
+          status: 'SCHEDULED',
+          homeTeam: {
+            id: String(match.team1.teamId),
+            name: match.team1.teamName,
+            shortName: match.team1.teamShortcut,
+            ...homeStats,
+          },
+          awayTeam: {
+            id: String(match.team2.teamId),
+            name: match.team2.teamName,
+            shortName: match.team2.teamShortcut,
+            ...awayStats,
+          },
+        };
+      }
+    } catch {}
+  }
+  if (id.startsWith('past-') || id.startsWith('live-')) {
+    const numericId = id.replace(/^(past|live)-/, '');
+    if (!FD_API_KEY) return undefined;
+    try {
+      const data = await fdApiGet(`/matches/${numericId}`);
+      if (data.match) return mapApiMatch(data.match, id.startsWith('past-'));
+    } catch {}
   }
   return getMockMatchById(id);
 }
