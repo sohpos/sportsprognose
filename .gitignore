@@ -7,4 +7,4 @@ build/
 .DS_Store
 .env
 .env.local
-data/
+data/apps/*/next-env.d.ts
