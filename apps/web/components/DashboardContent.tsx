@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { t, getSavedLocale } from '@/lib/translations';
 
 // Stats Component that uses translations
-export function DashboardContent() {
+export default function DashboardContent() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
