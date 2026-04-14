@@ -21,17 +21,8 @@ export default function NavBar() {
 
   const t = translations[locale] || translations['de'];
 
-  const links = [
-    { href: '/', label: t.dashboard },
-    { href: '/matches', label: t.matches },
-    { href: '/accuracy', label: t.accuracy },
-  ];
-
   return (
-    <nav
-      className="border-b"
-      style={{ backgroundColor: '#0f1629', borderColor: 'rgba(255,255,255,0.08)' }}
-    >
+    <nav className="border-b" style={{ backgroundColor: '#0f1629', borderColor: 'rgba(255,255,255,0.08)' }}>
       <div className="max-w-7xl mx-auto px-4 flex items-center h-16 gap-8">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl">⚽</span>
@@ -39,20 +30,16 @@ export default function NavBar() {
         </Link>
 
         <div className="flex gap-1">
-          {links.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
+          {[
+            { href: '/', label: t.dashboard },
+            { href: '/matches', label: t.matches },
+            { href: '/accuracy', label: t.accuracy },
+          ].map(link => (
+            <Link key={link.href} href={link.href}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === link.href
-                  ? 'text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                pathname === link.href ? 'text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
-              style={
-                pathname === link.href
-                  ? { backgroundColor: 'rgba(0,230,118,0.12)', color: '#00e676' }
-                  : {}
-              }
+              style={pathname === link.href ? { backgroundColor: 'rgba(0,230,118,0.12)', color: '#00e676' } : {}}
             >
               {link.label}
             </Link>
