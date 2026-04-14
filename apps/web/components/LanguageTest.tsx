@@ -9,7 +9,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Nächste Spiele',
     leagues: 'Ligen',
     predictions: 'Prognosen heute',
-    model: 'Modell',
+    model: 'Modell', lambda: 'λ',
     accuracyTitle: 'Trefferquote (8 Wochen)',
     avgAccuracy: 'Ø Ergebnis-Genauigkeit',
     exactScore: 'Exakter Score (diese Woche)',
@@ -44,7 +44,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Upcoming Matches',
     leagues: 'Leagues',
     predictions: 'Predictions today',
-    model: 'Model',
+    model: 'Model', lambda: 'λ',
     accuracyTitle: 'Accuracy (8 weeks)',
     avgAccuracy: 'Ø Result Accuracy',
     exactScore: 'Exact Score (this week)',
@@ -79,7 +79,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Gelecek Maçlar',
     leagues: 'Ligler',
     predictions: 'Bugünkü Tahminler',
-    model: 'Model',
+    model: 'Model', lambda: 'λ',
     accuracyTitle: 'Doğruluk (8 hafta)',
     avgAccuracy: 'Ø Sonuç Doğruluğu',
     exactScore: 'Kesin Skor (bu hafta)',
@@ -283,11 +283,17 @@ export default function LanguageTest() {
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg">{match.homeTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
+                    {predictions[match.id] && (
+                      <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.home}</div>
+                    )}
                   </div>
                   <div className="text-slate-500 px-4 text-xl">-</div>
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg">{match.awayTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
+                    {predictions[match.id] && (
+                      <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.away}</div>
+                    )}
                   </div>
                 </div>
                 {predictions[match.id] && (
