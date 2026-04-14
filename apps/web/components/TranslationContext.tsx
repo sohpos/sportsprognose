@@ -39,13 +39,20 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
   // 1. Load default language on app startup
   useEffect(() => {
     initLocale().then(() => {
-      setLocaleState(localeManager.locale);
+      const savedLocale = localeManager.locale;
+      console.log('Initial locale:', savedLocale);
+      setLocaleState(savedLocale);
+      setIsInitialized(true);
+    }).catch(e => {
+      console.error('initLocale failed:', e);
       setIsInitialized(true);
     });
     
     // Subscribe for dynamic language changes
     const unsubscribe = localeManager.subscribe(() => {
-      setLocaleState(localeManager.locale);
+      const newLocale = localeManager.locale;
+      console.log('Locale changed via subscription:', newLocale);
+      setLocaleState(newLocale);
       forceUpdate(n => n + 1);
     });
     
@@ -54,14 +61,17 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 
   // 2. Dynamic language switching - simple direct update
   const handleSetLocale = useCallback(async (newLocale: Locale) => {
-    console.log('Changing locale to:', newLocale);
-    // Directly update state first for immediate feedback
+    console.log('handleSetLocale called with:', newLocale);
+    // Directly update state - this is the key fix
     setLocaleState(newLocale);
-    // Also try to update localeManager
+    forceUpdate(n => n + 1);
+    
+    // Try to also update localeManager (may fail but state will update)
     try {
       await localeManager.setLocale(newLocale);
+      console.log('localeManager.setLocale succeeded');
     } catch (e) {
-      console.error('setLocale failed:', e);
+      console.warn('localeManager.setLocale failed (non-critical):', e);
     }
   }, []);
 
