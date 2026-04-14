@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import '@/lib/i18n';
 import NavBar from '@/components/NavBar';
 import { TranslationProvider } from '@/components/TranslationContext';
 
