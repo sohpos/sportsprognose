@@ -128,13 +128,13 @@ export function predictMatch(
   const confidence = Math.round(maxProb * 100);
 
   // Helper to compute Over/Under for threshold
-  function computeOverU(matrices: number[][], threshold: number): number {
+  function computeOverU(scoreMatrix: number[][], threshold: number): number {
     let sum = 0;
     const max = 5;
     for (let h = 0; h <= max; h++) {
       for (let a = 0; a <= max; a++) {
         if (h + a > threshold) {
-          const cell = matrices[h]?.[a];
+          const cell = scoreMatrix[h]?.[a];
           if (cell?.probability) sum += cell.probability;
         }
       }
@@ -150,14 +150,14 @@ export function predictMatch(
   })).sort((a: any, b: any) => b.probability - a.probability).slice(0, 5);
 
   // Over/Under probabilities
-  const over15 = computeOverU(matrices, 1.5);
-  const over35 = computeOverU(matrices, 3.5);
+  const over15 = computeOverU(scoreMatrix, 1.5);
+  const over35 = computeOverU(scoreMatrix, 3.5);
   
   // BTTS (Both Teams To Score)
   let btts = 0;
   for (let h = 1; h <= maxGoals; h++) {
     for (let a = 1; a <= maxGoals; a++) {
-      const cell = matrices[h]?.[a];
+      const cell = scoreMatrix[h]?.[a];
       if (cell?.probability) btts += cell.probability;
     }
   }
