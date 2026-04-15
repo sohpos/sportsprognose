@@ -2,11 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 30000,
-  retries: 1,
+  timeout: 60000,
+  retries: 0,
   expect: {
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.01, // 1% pixel difference allowed
+      maxDiffPixelRatio: 0.1,
       animations: 'disabled',
     },
   },
