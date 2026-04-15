@@ -49,8 +49,8 @@ export default function NavBar() {
 
         <div className="ml-auto flex items-center gap-4">
           <LanguageSelector />
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
             <span>{t.active}</span>
           </div>
         </div>
