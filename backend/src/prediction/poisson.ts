@@ -177,3 +177,39 @@ export function predictMatch(
     generatedAt: new Date().toISOString(),
   };
 }
+
+// Calculate value bet - compare our probability with bookmaker odds
+export function calculateValueBet(ourProb: number, bookmakerOdds: number): { hasValue: boolean; edge: number; impliedProb: number } {
+  const impliedProb = 1 / bookmakerOdds;
+  const edge = ourProb - impliedProb;
+  return {
+    hasValue: edge > 0.05, // 5% edge minimum
+    edge: Math.round(edge * 100),
+    impliedProb: Math.round(impliedProb * 100),
+  };
+}
+
+// Add value bets to prediction response
+export function addValueBets(prediction: any, odds?: { home: number; draw: number; away: number }): any {
+  if (!odds) {
+    // Generate mock odds based on probabilities (for demo)
+    const homeOdds = 1 / Math.max(prediction.homeWinProbability, 0.01);
+    const drawOdds = 1 / Math.max(prediction.drawProbability, 0.01);
+    const awayOdds = 1 / Math.max(prediction.awayWinProbability, 0.01);
+    odds = { home: homeOdds, draw: drawOdds, away: awayOdds };
+  }
+
+  const homeValue = calculateValueBet(prediction.homeWinProbability, odds.home);
+  const drawValue = calculateValueBet(prediction.drawProbability, odds.draw);
+  const awayValue = calculateValueBet(prediction.awayWinProbability, odds.away);
+
+  return {
+    ...prediction,
+    valueBets: {
+      home: homeValue,
+      draw: drawValue,
+      away: awayValue,
+      bestBet: homeValue.hasValue ? 'HOME' : drawValue.hasValue ? 'DRAW' : awayValue.hasValue ? 'AWAY' : null,
+    },
+  };
+}

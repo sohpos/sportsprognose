@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getMatchById, getPastMatches, getHeadToHead } from '../services/footballDataApi';
-import { predictMatch } from '../prediction/poisson';
+import { predictMatch, addValueBets } from '../prediction/poisson';
 import { savePrediction, getAccuracyStats } from '../db/database';
 import crypto from 'crypto';
 
@@ -58,7 +58,8 @@ router.get('/:matchId', async (req, res) => {
   }
 
   predictionCache.set(matchId, prediction);
-  return res.json({ prediction });
+  const predictionWithValue = addValueBets(prediction);
+  return res.json({ prediction: predictionWithValue });
 });
 
 router.get('/stats/accuracy', (_req, res) => {

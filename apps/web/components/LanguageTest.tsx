@@ -323,6 +323,24 @@ export default function LanguageTest() {
                       <span className="text-orange-400">O 3.5: {Math.round((predictions[match.id].over35Probability || 0) * 100)}%</span>
                       <span className="text-cyan-400">U 2.5: {Math.round(predictions[match.id].under25Probability * 100)}%</span>
                       <span className="text-pink-400 col-span-2">BTTS: {Math.round((predictions[match.id].bttsProbability || 0) * 100)}%</span>
+                      {/* Value Bets */}
+                      {predictions[match.id].valueBets && (
+                        <div className="col-span-2 mt-1 pt-1 border-t border-slate-700">
+                          <div className="text-[10px] text-yellow-400 mb-1">💎 Value Bets</div>
+                          {predictions[match.id].valueBets.home.hasValue && (
+                            <span className="text-green-400">Home +{predictions[match.id].valueBets.home.edge}%</span>
+                          )}
+                          {predictions[match.id].valueBets.draw.hasValue && (
+                            <span className="text-yellow-400"> Draw +{predictions[match.id].valueBets.draw.edge}%</span>
+                          )}
+                          {predictions[match.id].valueBets.away.hasValue && (
+                            <span className="text-blue-400">Away +{predictions[match.id].valueBets.away.edge}%</span>
+                          )}
+                          {!predictions[match.id].valueBets.home.hasValue && !predictions[match.id].valueBets.draw.hasValue && !predictions[match.id].valueBets.away.hasValue && (
+                            <span className="text-slate-500 text-xs">Keine Value</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {/* Score Matrix */}
                     <ScoreMatrix prediction={predictions[match.id]} match={match} t={t} />
