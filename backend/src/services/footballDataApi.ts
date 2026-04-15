@@ -265,3 +265,43 @@ export async function getMatchById(id: string): Promise<Match | undefined> {
   }
   return getMockMatchById(id);
 }
+// Get Head-to-Head matches between two teams
+export async function getHeadToHead(team1Id: string, team2Id: string): Promise<any[]> {
+  try {
+    // Get matches for both teams
+    const data1 = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${team1Id}`);
+    const data2 = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${team2Id}`);
+    
+    if (!data1 || !data2) return [];
+    
+    // Find matches where these two teams played each other
+    const h2hMatches: any[] = [];
+    const team1Str = String(team1Id);
+    const team2Str = String(team2Id);
+    
+    for (const match of data1) {
+      const t1 = String(match.team1?.teamId);
+      const t2 = String(match.team2?.teamId);
+      if ((t1 === team1Str && t2 === team2Str) || (t1 === team2Str && t2 === team1Str)) {
+        const result = match.matchResults?.find((r: any) => r.resultTypeID === 2);
+        if (result) {
+          h2hMatches.push({
+            date: match.matchDateTime,
+            homeTeam: match.team1.teamName,
+            awayTeam: match.team2.teamName,
+            homeGoals: result.pointsTeam1,
+            awayGoals: result.pointsTeam2,
+          });
+        }
+      }
+    }
+    
+    // Sort by date descending and take last 5
+    return h2hMatches
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  } catch (e) {
+    console.error('H2H error:', e);
+    return [];
+  }
+}

@@ -283,6 +283,7 @@ export default function LanguageTest() {
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.homeTeam.logo && <img src={match.homeTeam.logo} alt="" className="w-5 h-5" />}{match.homeTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
+                    <FormBadge form={match.homeTeam.form} t={t} />
                     {predictions[match.id] && (
                       <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.home.toFixed(1)}</div>
                     )}
@@ -291,6 +292,7 @@ export default function LanguageTest() {
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.awayTeam.logo && <img src={match.awayTeam.logo} alt="" className="w-5 h-5" />}{match.awayTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
+                    <FormBadge form={match.awayTeam.form} t={t} />
                     {predictions[match.id] && (
                       <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.away.toFixed(1)}</div>
                     )}
@@ -323,7 +325,7 @@ export default function LanguageTest() {
                       <span className="text-pink-400 col-span-2">BTTS: {Math.round((prediction.bttsProbability || 0) * 100)}%</span>
                     </div>
                     {/* Score Matrix */}
-                    <ScoreMatrix prediction={predictions[match.id]} t={t} />
+                    <ScoreMatrix prediction={predictions[match.id]} match={match} t={t} />
                   </div>
                 )}
               </div>
@@ -335,8 +337,20 @@ export default function LanguageTest() {
   );
 }
 // Score Matrix Component - 6x6 grid (goals 0-5)
-function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
+function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t: any }) {
   const [expanded, setExpanded] = useState(false);
+  const [showH2h, setShowH2h] = useState(false);
+  const [h2hData, setH2hData] = useState<any[]>([]);
+
+  // Load H2H data on expand
+  useEffect(() => {
+    if (expanded && showH2h) {
+      fetch(`/api/predictions/h2h/${match.homeTeam.id}/${match.awayTeam.id}`)
+        .then(r => r.json())
+        .then(d => setH2hData(d.h2h || []))
+        .catch(() => setH2hData([]));
+    }
+  }, [expanded, showH2h, match.homeTeam.id, match.awayTeam.id]);
   const matrix = prediction.scoreMatrix || [];
   const maxGoals = 5; // Shows 0-5 = 6 rows
   
@@ -346,10 +360,29 @@ function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
     <div className="mt-3">
       <button 
         onClick={() => setExpanded(!expanded)}
-        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1"
+        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-2"
       >
         {expanded ? '▼' : '▶'} {t.showDetails || 'Score-Matrix'}
       </button>
+      <button 
+        onClick={() => setShowH2h(!showH2h)}
+        className="text-xs text-blue-400 hover:text-blue-300 ml-3"
+      >
+        {showH2h ? '▼' : '▶'} H2H
+      </button>
+      
+      {showH2h && h2hData.length > 0 && (
+        <div className="mt-2 p-2 bg-slate-800 rounded text-xs">
+          <div className="text-slate-400 mb-1">Head-to-Head (letzte Spiele)</div>
+          {h2hData.map((m, i) => (
+            <div key={i} className="flex justify-between text-slate-300">
+              <span>{m.homeTeam}</span>
+              <span className="font-bold">{m.homeGoals} - {m.awayGoals}</span>
+              <span>{m.awayTeam}</span>
+            </div>
+          ))}
+        </div>
+      )}
       
       {expanded && (
         <div className="mt-2 overflow-x-auto">
@@ -369,14 +402,24 @@ function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
                   {Array.from({ length: maxGoals + 1 }).map((_, a) => {
                     const cell = matrix.find((s: any) => s.homeGoals === h && s.awayGoals === a);
                     const prob = cell?.probability || 0;
-                    const intensity = Math.min(prob * 5, 1);
+                    // Heatmap: low=red, mid=yellow, high=green
+                    const getHeatColor = (p: number) => {
+                      if (p < 0.05) return 'rgba(30, 30, 40, 0.9)';
+                      if (p < 0.10) return 'rgba(220, 53, 69, 0.9)';
+                      if (p < 0.15) return 'rgba(253, 126, 20, 0.9)';
+                      if (p < 0.20) return 'rgba(255, 193, 7, 0.9)';
+                      if (p < 0.30) return 'rgba(40, 167, 69, 0.8)';
+                      return 'rgba(0, 230, 118, 0.85)';
+                    };
+                    const color = getHeatColor(prob);
+                    const textColor = prob > 0.15 ? '#fff' : '#ccc';
                     return (
                       <td 
                         key={a} 
-                        className="p-1"
+                        className="p-1 text-xs"
                         style={{ 
-                          backgroundColor: `rgba(0, 230, 118, ${intensity * 0.8})`,
-                          color: intensity > 0.5 ? '#0a0e1a' : '#e2e8f0',
+                          backgroundColor: color,
+                          color: textColor,
                         }}
                       >
                         {(prob * 100).toFixed(1)}%
