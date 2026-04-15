@@ -342,15 +342,15 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
   const [showH2h, setShowH2h] = useState(false);
   const [h2hData, setH2hData] = useState<any[]>([]);
 
-  // Load H2H data on expand
+  // Load H2H data when button clicked
   useEffect(() => {
-    if (expanded && showH2h) {
+    if (showH2h && match.homeTeam.id && match.awayTeam.id) {
       fetch(`/api/predictions/h2h/${match.homeTeam.id}/${match.awayTeam.id}`)
         .then(r => r.json())
         .then(d => setH2hData(d.h2h || []))
         .catch(() => setH2hData([]));
     }
-  }, [expanded, showH2h, match.homeTeam.id, match.awayTeam.id]);
+  }, [showH2h, match.homeTeam.id, match.awayTeam.id]);
   const matrix = prediction.scoreMatrix || [];
   const maxGoals = 5; // Shows 0-5 = 6 rows
   
@@ -360,27 +360,29 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
     <div className="mt-3">
       <button 
         onClick={() => setExpanded(!expanded)}
-        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-2"
+        className="text-xs text-green-400 hover:text-green-300 mr-3"
       >
         {expanded ? '▼' : '▶'} {t.showDetails || 'Score-Matrix'}
       </button>
       <button 
         onClick={() => setShowH2h(!showH2h)}
-        className="text-xs text-blue-400 hover:text-blue-300 ml-3"
+        className="text-xs text-blue-400 hover:text-blue-300"
       >
         {showH2h ? '▼' : '▶'} H2H
       </button>
       
       {showH2h && h2hData.length > 0 && (
-        <div className="mt-2 p-2 bg-slate-800 rounded text-xs">
+        <div className="mt-2 p-2 bg-slate-800 rounded text-xs w-full">
           <div className="text-slate-400 mb-1">Head-to-Head (letzte Spiele)</div>
+          <div className="flex flex-col gap-1">
           {h2hData.map((m, i) => (
-            <div key={i} className="flex justify-between text-slate-300">
-              <span>{m.homeTeam}</span>
-              <span className="font-bold">{m.homeGoals} - {m.awayGoals}</span>
-              <span>{m.awayTeam}</span>
+            <div key={i} className="flex justify-between text-slate-300 w-full">
+              <span className="truncate">{m.homeTeam}</span>
+              <span className="font-bold whitespace-nowrap">{m.homeGoals} - {m.awayGoals}</span>
+              <span className="truncate text-right">{m.awayTeam}</span>
             </div>
           ))}
+          </div>
         </div>
       )}
       
