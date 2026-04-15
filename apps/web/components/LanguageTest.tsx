@@ -44,7 +44,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Upcoming Matches',
     leagues: 'Leagues',
     predictions: 'Predictions today',
-    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
+    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
     accuracyTitle: 'Accuracy (8 weeks)',
     avgAccuracy: 'Ø Result Accuracy',
     exactScore: 'Exact Score (this week)',
@@ -79,7 +79,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Gelecek Maçlar',
     leagues: 'Ligler',
     predictions: 'Bugünkü Tahminler',
-    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
+    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
     accuracyTitle: 'Doğruluk (8 hafta)',
     avgAccuracy: 'Ø Sonuç Doğruluğu',
     exactScore: 'Kesin Skor (bu hafta)',
@@ -118,19 +118,33 @@ export const getLocale = () => {
 
 interface Match {
   id: string;
-  homeTeam: { name: string; shortName: string };
-  awayTeam: { name: string; shortName: string };
+  homeTeam: { id?: string; name: string; shortName: string; form?: string; logo?: string };
+  awayTeam: { id?: string; name: string; shortName: string; form?: string; logo?: string };
   leagueName: string;
   leagueId: string;
   utcDate: string;
 }
 
 interface Prediction {
-  predictedOutcome: 'home' | 'draw' | 'away';
+  matchId: string;
+  predictedOutcome: 'HOME' | 'DRAW' | 'AWAY';
   confidence: number;
-  homeProbability: number;
+  homeWinProbability: number;
   drawProbability: number;
-  awayProbability: number;
+  awayWinProbability: number;
+  lambdaHome?: number;
+  lambdaAway?: number;
+  over15Probability?: number;
+  over25Probability?: number;
+  over35Probability?: number;
+  under25Probability?: number;
+  bttsProbability?: number;
+  mostLikelyScore?: { home: number; away: number };
+  valueBets?: {
+    home: { hasValue: boolean; edge: number };
+    draw: { hasValue: boolean; edge: number };
+    away: { hasValue: boolean; edge: number };
+  };
 }
 
 interface WeekStats {
@@ -283,7 +297,7 @@ export default function LanguageTest() {
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.homeTeam.logo && <img src={match.homeTeam.logo} alt="" className="w-5 h-5" />}{match.homeTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
-                    <FormBadge form={match.homeTeam.form} t={t} />
+                    <FormBadge form={match.homeTeam.form || ''} t={t} />
                     {predictions[match.id] && (
                       <div className="text-[10px] text-orange-400">λ {predictions[match.id].lambdaHome?.toFixed(1)}</div>
                     )}
@@ -292,7 +306,7 @@ export default function LanguageTest() {
                   <div className="text-center flex-1">
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.awayTeam.logo && <img src={match.awayTeam.logo} alt="" className="w-5 h-5" />}{match.awayTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
-                    <FormBadge form={match.awayTeam.form} t={t} />
+                    <FormBadge form={match.awayTeam.form || ''} t={t} />
                     {predictions[match.id] && (
                       <div className="text-[10px] text-orange-400">λ {predictions[match.id].lambdaAway?.toFixed(1)}</div>
                     )}
@@ -302,14 +316,14 @@ export default function LanguageTest() {
                   <div className="mt-3 pt-3 border-t border-slate-700">
                     <div className="text-xs text-slate-400 mb-2">{t.confidence}: {Math.round(predictions[match.id].confidence)}%</div>
                     <div className="flex text-xs text-slate-400 justify-between mb-1">
-                      <span className="text-green-400">{Math.round(predictions[match.id].homeWinProbability * 100)}%</span>
-                      <span>{Math.round(predictions[match.id].drawProbability * 100)}%</span>
-                      <span className="text-blue-400">{Math.round(predictions[match.id].awayWinProbability * 100)}%</span>
+                      <span className="text-green-400">{Math.round((predictions[match.id].homeWinProbability || 0) * 100)}%</span>
+                      <span>{Math.round((predictions[match.id].drawProbability || 0) * 100)}%</span>
+                      <span className="text-blue-400">{Math.round((predictions[match.id].awayWinProbability || 0) * 100)}%</span>
                     </div>
                     <div className="flex h-1.5 rounded-full overflow-hidden gap-0.5">
-                      <div className="bg-green-500 rounded-l-full" style={{ width: `${predictions[match.id].homeWinProbability * 100}%` }} />
-                      <div className="bg-slate-500" style={{ width: `${predictions[match.id].drawProbability * 100}%` }} />
-                      <div className="bg-blue-500 rounded-r-full" style={{ width: `${predictions[match.id].awayWinProbability * 100}%` }} />
+                      <div className="bg-green-500 rounded-l-full" style={{ width: `${(predictions[match.id].homeWinProbability || 0) * 100}%` }} />
+                      <div className="bg-slate-500" style={{ width: `${(predictions[match.id].drawProbability || 0) * 100}%` }} />
+                      <div className="bg-blue-500 rounded-r-full" style={{ width: `${(predictions[match.id].awayWinProbability || 0) * 100}%` }} />
                     </div>
                     <div className="flex text-[10px] text-slate-500 justify-between mt-1">
                       <span>{t.probHome}</span>
@@ -319,24 +333,24 @@ export default function LanguageTest() {
                     {/* Over/Under and BTTS */}
                     <div className="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-1 text-xs">
                       <span className="text-orange-400">O 1.5: {Math.round((predictions[match.id].over15Probability || 0) * 100)}%</span>
-                      <span className="text-orange-400">O 2.5: {Math.round(predictions[match.id].over25Probability * 100)}%</span>
+                      <span className="text-orange-400">O 2.5: {predictions[match.id] ? Math.round((predictions[match.id].over25Probability || 0) * 100) : 0}%</span>
                       <span className="text-orange-400">O 3.5: {Math.round((predictions[match.id].over35Probability || 0) * 100)}%</span>
-                      <span className="text-cyan-400">U 2.5: {Math.round(predictions[match.id].under25Probability * 100)}%</span>
+                      <span className="text-cyan-400">U 2.5: {predictions[match.id] ? Math.round((predictions[match.id].under25Probability || 0) * 100) : 0}%</span>
                       <span className="text-pink-400 col-span-2">BTTS: {Math.round((predictions[match.id].bttsProbability || 0) * 100)}%</span>
                       {/* Value Bets */}
-                      {predictions[match.id].valueBets && (
+                      {predictions[match.id]?.valueBets && (
                         <div className="col-span-2 mt-1 pt-1 border-t border-slate-700">
                           <div className="text-[10px] text-yellow-400 mb-1">💎 Value Bets</div>
-                          {predictions[match.id].valueBets.home.hasValue && (
-                            <span className="text-green-400">Home +{predictions[match.id].valueBets.home.edge}%</span>
+                          {predictions[match.id]?.valueBets?.home?.hasValue && (
+                            <span className="text-green-400">Home +{predictions[match.id]?.valueBets?.home?.edge}%</span>
                           )}
-                          {predictions[match.id].valueBets.draw.hasValue && (
-                            <span className="text-yellow-400"> Draw +{predictions[match.id].valueBets.draw.edge}%</span>
+                          {predictions[match.id]?.valueBets?.draw?.hasValue && (
+                            <span className="text-yellow-400"> Draw +{predictions[match.id]?.valueBets?.draw?.edge}%</span>
                           )}
-                          {predictions[match.id].valueBets.away.hasValue && (
-                            <span className="text-blue-400">Away +{predictions[match.id].valueBets.away.edge}%</span>
+                          {predictions[match.id]?.valueBets?.away?.hasValue && (
+                            <span className="text-blue-400">Away +{predictions[match.id]?.valueBets?.away?.edge}%</span>
                           )}
-                          {!predictions[match.id].valueBets.home.hasValue && !predictions[match.id].valueBets.draw.hasValue && !predictions[match.id].valueBets.away.hasValue && (
+                          {!predictions[match.id]?.valueBets?.home?.hasValue && !predictions[match.id]?.valueBets?.draw?.hasValue && !predictions[match.id]?.valueBets?.away?.hasValue && (
                             <span className="text-slate-500 text-xs">Keine Value</span>
                           )}
                         </div>

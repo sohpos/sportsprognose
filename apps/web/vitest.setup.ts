@@ -19,8 +19,8 @@ Object.defineProperty(globalThis, 'localStorage', {
 });
 
 // Mock window
-globalThis.window = {
+(globalThis.window as any) = {
   dispatchEvent: vi.fn(),
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
-} as Window & typeof globalThis;
+};

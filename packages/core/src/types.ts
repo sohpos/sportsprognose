@@ -3,6 +3,7 @@ export interface Team {
   name: string;
   shortName: string;
   crest?: string;
+  logo?: string;  // Alternative logo URL
   avgGoalsScored: number;
   avgGoalsConceded: number;
   form: string; // e.g. "WWDLW"

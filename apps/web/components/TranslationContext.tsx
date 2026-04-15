@@ -110,7 +110,7 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     console.log('TranslationContext: localStorage shows:', saved);
     
     if (saved && saved in translations) {
-      setLocale(saved);
+      setLocale(saved as Locale);
       console.log('TranslationContext: set to saved:', saved);
     } else {
       console.log('TranslationContext: no saved, using default');

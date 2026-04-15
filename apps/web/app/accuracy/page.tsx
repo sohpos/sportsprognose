@@ -30,6 +30,7 @@ interface WeekStats {
   week: string;
   totalPredictions: number;
   outcomeAccuracy: number;
+  scoreAccuracy?: number;
 }
 
 export default function AccuracyPage() {

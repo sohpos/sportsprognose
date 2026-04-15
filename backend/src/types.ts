@@ -4,6 +4,7 @@ export interface Team {
   name: string;
   shortName: string;
   crest?: string;
+  logo?: string;
   avgGoalsScored: number;
   avgGoalsConceded: number;
   form: string;
@@ -41,13 +42,18 @@ export interface PredictionResult {
   homeWinProbability: number;
   drawProbability: number;
   awayWinProbability: number;
+  over15Probability: number;
   over25Probability: number;
+  over35Probability: number;
   under25Probability: number;
+  bttsProbability: number;
   mostLikelyScore: { home: number; away: number };
   scoreMatrix: ScorelineProbability[];
   confidence: number;
   predictedOutcome: 'HOME' | 'DRAW' | 'AWAY';
   generatedAt: string;
+  lambdaHome?: number;
+  lambdaAway?: number;
 }
 
 export interface AccuracyStats {

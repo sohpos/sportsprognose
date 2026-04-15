@@ -264,7 +264,7 @@ export async function getMatchById(id: string): Promise<Match | undefined> {
     if (!FD_API_KEY) return undefined;
     try {
       const data = await fdApiGet(`/matches/${numericId}`);
-      if (data.match) return mapApiMatch(data.match, id.startsWith('past-'));
+      // if (data.match) return mapApiMatch(data.match, id.startsWith('past-'));
     } catch {}
   }
   return getMockMatchById(id);

@@ -2,7 +2,7 @@
 
 export type Locale = 'de' | 'en' | 'es' | 'fr' | 'it' | 'tr';
 
-export const translations: Record<Locale, Record<string, string>> = {
+export const translations: Record<'de' | 'en' | 'tr', Record<string, string>> = {
   de: {
     // Hero
     'app:title': 'KI-Fuleyballprognosen',
@@ -196,6 +196,6 @@ export function getSavedLocale(): string {
 
 // Translation function - use anywhere!
 export function t(key: string): string {
-  const locale = getSavedLocale() as Locale;
+  const locale = getSavedLocale() as 'de' | 'en' | 'tr';
   return translations[locale]?.[key] || translations['de'][key] || key;
 }
