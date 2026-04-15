@@ -11,6 +11,9 @@
     "dev:backend": "npm run dev --workspace=backend",
     "dev:web": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=packages/core && npm run build --workspace=backend && npm run build --workspace=apps/web",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   }
 }
