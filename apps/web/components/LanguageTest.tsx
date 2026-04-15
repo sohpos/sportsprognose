@@ -318,11 +318,11 @@ export default function LanguageTest() {
                     </div>
                     {/* Over/Under and BTTS */}
                     <div className="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-1 text-xs">
-                      <span className="text-orange-400">O 1.5: {Math.round((prediction.over15Probability || 0) * 100)}%</span>
-                      <span className="text-orange-400">O 2.5: {Math.round(prediction.over25Probability * 100)}%</span>
-                      <span className="text-orange-400">O 3.5: {Math.round((prediction.over35Probability || 0) * 100)}%</span>
-                      <span className="text-cyan-400">U 2.5: {Math.round(prediction.under25Probability * 100)}%</span>
-                      <span className="text-pink-400 col-span-2">BTTS: {Math.round((prediction.bttsProbability || 0) * 100)}%</span>
+                      <span className="text-orange-400">O 1.5: {Math.round((predictions[match.id].over15Probability || 0) * 100)}%</span>
+                      <span className="text-orange-400">O 2.5: {Math.round(predictions[match.id].over25Probability * 100)}%</span>
+                      <span className="text-orange-400">O 3.5: {Math.round((predictions[match.id].over35Probability || 0) * 100)}%</span>
+                      <span className="text-cyan-400">U 2.5: {Math.round(predictions[match.id].under25Probability * 100)}%</span>
+                      <span className="text-pink-400 col-span-2">BTTS: {Math.round((predictions[match.id].bttsProbability || 0) * 100)}%</span>
                     </div>
                     {/* Score Matrix */}
                     <ScoreMatrix prediction={predictions[match.id]} match={match} t={t} />
