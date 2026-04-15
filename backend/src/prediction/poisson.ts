@@ -123,6 +123,7 @@ export function predictMatch(
 
   // Confidence: how dominant is the top outcome?
   const confidence = Math.round(maxProb * 100);
+  console.log(`[PREDICT] ${matchId}: λ_home=${lambdaHome.toFixed(2)}, λ_away=${lambdaAway.toFixed(2)}, O2.5=${(computeOverU(scoreMatrix, totalProb, 2.5) * 100).toFixed(0)}%`);
 
   // Helper to compute Over/Under for threshold
   function computeOverU(scoreMatrix: ScorelineProbability[], totalProb: number, threshold: number): number {
@@ -167,7 +168,6 @@ export function predictMatch(
     mostLikelyScore,
     lambdaHome,
     lambdaAway,
-    console.log(`[PREDICT] ${matchId}: λ_home=${lambdaHome.toFixed(2)}, λ_away=${lambdaAway.toFixed(2)}`);
     scoreMatrix: scoreMatrix.map(s => ({
       ...s,
       probability: s.probability / totalProb,
