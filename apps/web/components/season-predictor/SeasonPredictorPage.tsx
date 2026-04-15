@@ -1,3 +1,5 @@
+'use client';
+
 import { useSeasonPredictor } from "@/hooks/useSeasonPredictor"
 import { SeasonXPTable } from "./SeasonXPTable"
 import { SeasonChances } from "./SeasonChances"

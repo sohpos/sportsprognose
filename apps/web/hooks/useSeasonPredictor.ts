@@ -1,3 +1,5 @@
+'use client';
+
 // apps/web/hooks/useSeasonPredictor.ts
 import { useEffect, useState, useRef, useCallback } from 'react';
 
