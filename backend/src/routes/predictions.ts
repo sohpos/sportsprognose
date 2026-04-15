@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getMatchById, getPastMatches } from '../services/footballDataApi';
+import { getMatchById, getPastMatches, getHeadToHead } from '../services/footballDataApi';
 import { predictMatch } from '../prediction/poisson';
 import { savePrediction, getAccuracyStats } from '../db/database';
 import crypto from 'crypto';
