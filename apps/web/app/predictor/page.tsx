@@ -3,7 +3,6 @@ import '../globals.css';
 import NavBar from '@/components/NavBar';
 import { SeasonPredictorPage } from '@/components/season-predictor';
 
-// Mock data for demonstration - in production this would come from API
 const mockTeams = [
   { id: 'bl1-1', name: 'Bayern München', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg' },
   { id: 'bl1-2', name: 'Borussia Dortmund', logo: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Borussia_Dortmund_logo.svg' },
@@ -25,68 +24,106 @@ const mockTeams = [
   { id: 'bl1-18', name: 'DSC Arminia Bielefeld', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4c/Arminia_Bielefeld_logo.svg' },
 ];
 
-const mockFixtures = mockTeams.slice(0, 17).map((_, i) => ({
-  homeId: mockTeams[i].id,
-  awayId: mockTeams[i + 1]?.id || mockTeams[0].id,
-}));
+// Realistic xP values based on typical Bundesliga performance
+const xPRankings = {
+  'bl1-1': 78,   // Bayern
+  'bl1-2': 68,   // Dortmund  
+  'bl1-3': 72,   // Leverkusen
+  'bl1-4': 66,   // Leipzig
+  'bl1-5': 58,   // Frankfurt
+  'bl1-6': 56,   // Stuttgart
+  'bl1-7': 54,   // Freiburg
+  'bl1-8': 48,   // Hertha
+  'bl1-9': 50,   // Union
+  'bl1-10': 46,  // Wolfsburg
+  'bl1-11': 44,  // Mainz
+  'bl1-12': 42,  // Augsburg
+  'bl1-13': 40,  // Gladbach
+  'bl1-14': 38,  // Hoffenheim
+  'bl1-15': 36,  // Bremen
+  'bl1-16': 34,  // Bochum
+  'bl1-17': 32,  // Köln
+  'bl1-18': 28,  // Bielefeld
+};
 
-// Mock actual points (current Bundesliga standings simulation)
-const mockActualPoints: Record<string, number> = {
-  'bl1-1': 72,
-  'bl1-2': 63,
-  'bl1-3': 68,
-  'bl1-4': 58,
+// Actual points (similar to xP but with some variance)
+const actualPoints = {
+  'bl1-1': 75,
+  'bl1-2': 65,
+  'bl1-3': 70,
+  'bl1-4': 64,
   'bl1-5': 55,
-  'bl1-6': 52,
-  'bl1-7': 50,
+  'bl1-6': 58,
+  'bl1-7': 52,
   'bl1-8': 45,
-  'bl1-9': 44,
-  'bl1-10': 43,
+  'bl1-9': 48,
+  'bl1-10': 44,
   'bl1-11': 42,
   'bl1-12': 40,
   'bl1-13': 38,
-  'bl1-14': 36,
-  'bl1-15': 34,
-  'bl1-16': 32,
-  'bl1-17': 30,
-  'bl1-18': 28,
+  'bl1-14': 35,
+  'bl1-15': 33,
+  'bl1-16': 31,
+  'bl1-17': 29,
+  'bl1-18': 25,
 };
 
-// Generate mock prediction data
-const generateMockData = () => {
+// Generate realistic distribution based on xP
+const generateRealisticData = () => {
   const data: Record<string, any> = {};
   
-  mockTeams.forEach((team, index) => {
-    const baseXP = 60 + (Math.random() * 30 - 15); // Random base between 45-75
-    const championProb = Math.max(500, 50000 - index * 2500 + Math.random() * 3000);
-    const relegationProb = Math.max(200, index * 1000 - 15000 + Math.random() * 2000);
+  // Sort teams by xP to determine probabilities
+  const sortedTeams = Object.entries(xPRankings).sort((a, b) => b[1] - a[1]);
+  
+  sortedTeams.forEach(([teamId], rankIndex) => {
+    const xp = xPRankings[teamId as keyof typeof xPRankings];
     
-    // Generate position distribution (18 teams, 100000 total)
+    // Champion probability based on xP rank (top team ~45%, decreases exponentially)
+    const championProb = Math.round(45000 * Math.pow(0.75, rankIndex));
+    
+    // Relegation probability (bottom teams ~40%, decreases for mid-table)
+    const relegationRank = 17 - rankIndex;
+    const relegationProb = relegationRank > 0 
+      ? Math.max(500, Math.round(40000 * Math.pow(0.8, relegationRank)))
+      : Math.max(100, Math.round(5000 * Math.random()));
+    
+    // Position distribution - peaked around expected position
     const distribution = Array(18).fill(0);
-    const peakPosition = Math.max(0, Math.min(17, index + Math.floor(Math.random() * 3) - 1));
-    for (let i = 0; i < 18; i++) {
-      const distance = Math.abs(i - peakPosition);
-      distribution[i] = Math.max(500, Math.round(8000 / (distance + 1) + Math.random() * 2000));
+    const expectedPos = rankIndex + 1;
+    
+    for (let pos = 0; pos < 18; pos++) {
+      const distance = Math.abs(pos - expectedPos);
+      // Gaussian-like distribution
+      let prob = Math.exp(-distance * distance / 8);
+      // Add randomness
+      prob *= (0.8 + Math.random() * 0.4);
+      distribution[pos] = Math.max(100, Math.round(prob * 12000));
     }
+    
     // Normalize to 100000
     const total = distribution.reduce((a, b) => a + b, 0);
     distribution.forEach((_, i) => {
       distribution[i] = Math.round((distribution[i] / total) * 100000);
     });
     
-    data[team.id] = {
-      xp: Math.round(baseXP * 10) / 10,
-      first: distribution[0],
-      relegation: distribution[15] + distribution[16] + distribution[17],
+    // Update champion/relegation to match actual distribution
+    const actualChampion = distribution[0];
+    const actualRelegation = distribution[15] + distribution[16] + distribution[17];
+    
+    data[teamId] = {
+      xp,
+      first: actualChampion,
+      relegation: actualRelegation,
       distribution,
-      actualPoints: mockActualPoints[team.id],
-      goalsFor: 65 + Math.floor(Math.random() * 20),
-      goalsAgainst: 35 + Math.floor(Math.random() * 20),
-      xG: 60 + Math.floor(Math.random() * 15),
-      xGA: 32 + Math.floor(Math.random() * 15),
+      actualPoints: actualPoints[teamId as keyof typeof actualPoints],
+      // Additional metrics
+      goalsFor: 50 + Math.floor((18 - rankIndex) * 2.5) + Math.floor(Math.random() * 10),
+      goalsAgainst: 20 + Math.floor(rankIndex * 1.5) + Math.floor(Math.random() * 8),
+      xG: 45 + Math.floor((18 - rankIndex) * 2) + Math.floor(Math.random() * 8),
+      xGA: 22 + Math.floor(rankIndex * 1.2) + Math.floor(Math.random() * 6),
       form: [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4), Math.floor(Math.random() * 4), Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)],
-      homePoints: Math.floor((mockActualPoints[team.id] || 40) * 0.6),
-      awayPoints: Math.floor((mockActualPoints[team.id] || 40) * 0.4),
+      homePoints: Math.floor(xp * 0.55),
+      awayPoints: Math.floor(xp * 0.45),
     };
   });
   
@@ -99,16 +136,15 @@ export const metadata: Metadata = {
 };
 
 export default function SeasonPredictorDashboard() {
-  const mockData = generateMockData();
+  const mockData = generateRealisticData();
   
   return (
     <div className="min-h-screen bg-neutral-900">
       <NavBar />
       <main className="container mx-auto px-4 py-6">
         <SeasonPredictorPage 
-          fixtures={mockFixtures} 
           teams={mockTeams}
-          actualPoints={mockActualPoints}
+          actualPoints={actualPoints}
           initialData={mockData}
         />
       </main>
