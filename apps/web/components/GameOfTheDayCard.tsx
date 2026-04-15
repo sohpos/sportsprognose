@@ -25,7 +25,7 @@ const translations: Record<string, Record<string, string>> = {
 
 // Inline components for simplicity
 function ConfidenceHeatbar({ confidence }: { confidence: number }) {
-  const pct = Math.round(confidence * 100);
+  const pct = Math.round(confidence);
   let color = 'bg-red-500';
   if (pct >= 60) color = 'bg-yellow-500';
   if (pct >= 75) color = 'bg-green-500';
@@ -116,7 +116,7 @@ export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
       <div className="mb-3">
         <div className="flex justify-between text-xs mb-1">
           <span className="text-slate-400">{t.confidence}</span>
-          <span className="text-slate-400">{Math.round(gotd.confidence * 100)}%</span>
+          <span className="text-slate-400">{Math.round(gotd.confidence)}%</span>
         </div>
         <ConfidenceHeatbar confidence={gotd.confidence} />
       </div>

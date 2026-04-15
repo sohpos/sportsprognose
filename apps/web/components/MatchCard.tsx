@@ -74,7 +74,7 @@ function ProbBar({ homeProb, drawProb, awayProb, locale = 'de' }: { homeProb: nu
 /** Confidence Heatbar - Shows prediction certainty */
 function ConfidenceHeatbar({ confidence, locale = 'de' }: { confidence: number; locale?: string }) {
   const t = translations[locale] || translations['de'];
-  const pct = Math.round(confidence * 100);
+  const pct = Math.round(confidence);
   
   // Color based on confidence level
   let color = 'bg-red-500';
@@ -124,7 +124,7 @@ export default function MatchCard({ match, prediction, locale = 'de' }: Props) {
         <div className="mt-3 pt-3 border-t border-slate-700">
           <div className="text-center">
             <span className="text-sm font-medium text-green-400">{outcomeLabel}</span>
-            <span className="text-xs text-slate-500 ml-2">({Math.round(prediction.confidence * 100)}% {t.home.toLowerCase()})</span>
+            <span className="text-xs text-slate-500 ml-2">({Math.round(prediction.confidence)}% {t.home.toLowerCase()})</span>
           </div>
           <ProbBar homeProb={prediction.homeWinProbability} drawProb={prediction.drawProbability} awayProb={prediction.awayWinProbability} locale={locale} />
           <ConfidenceHeatbar confidence={prediction.confidence} locale={locale} />
