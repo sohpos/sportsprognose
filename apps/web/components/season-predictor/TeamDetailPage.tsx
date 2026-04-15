@@ -1,48 +1,24 @@
-import { TeamInsightCard } from "./TeamInsightCard"
+import { TeamInsightCard, TeamInsightGrid } from "./TeamInsightCard"
 import { PositionDistributionChart } from "./PositionDistributionChart"
+import { TeamData } from "./types"
+import { calculateExpectedPosition } from "./utils"
 
 type TeamDetailPageProps = {
   team: { id: string; name: string; logo?: string }
-  data: {
-    xp: number
-    distribution: number[]
-    actualPoints?: number
-    goalsFor?: number
-    goalsAgainst?: number
-    xG?: number
-    xGA?: number
-    form?: number[]
-    homePoints?: number
-    awayPoints?: number
-  }
+  data: TeamData
   leagueAverage?: { xp: number; xG: number; xGA: number }
 }
 
 export function TeamDetailPage({ team, data, leagueAverage }: TeamDetailPageProps) {
-  // Calculate metrics inline
-  const getVolatility = (distribution: number[]) => {
-    const total = distribution.reduce((a, b) => a + b, 0)
-    if (total === 0) return 0
-    let expectedPos = 0
-    distribution.forEach((count, pos) => { expectedPos += (pos + 1) * (count / total) })
-    let variance = 0
-    distribution.forEach((count, pos) => {
+  const volatility = data?.distribution ? Math.sqrt(
+    data.distribution.reduce((sum, count, pos) => {
+      const total = data.distribution.reduce((a, b) => a + b, 0)
       const prob = count / total
-      variance += prob * Math.pow(pos + 1 - expectedPos, 2)
-    })
-    return Math.sqrt(variance)
-  }
+      const mean = data.distribution.reduce((s, c, i) => s + c * (i + 1), 0) / total
+      return sum + prob * Math.pow(pos + 1 - mean, 2)
+    }, 0)
+  ) : 0
 
-  const getMomentum = (form?: number[]) => {
-    if (!form || form.length < 3) return 0
-    const recent = form.slice(-3)
-    const earlier = form.slice(-5, -3)
-    const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length
-    const earlierAvg = earlier.length > 0 ? earlier.reduce((a, b) => a + b, 0) / earlier.length : recentAvg
-    return recentAvg - earlierAvg
-  }
-
-  const volatility = data?.distribution ? getVolatility(data.distribution) : 0
   const xp = data?.xp ?? 0
   const actual = data?.actualPoints
   const delta = actual !== undefined ? actual - xp : null
@@ -50,28 +26,19 @@ export function TeamDetailPage({ team, data, leagueAverage }: TeamDetailPageProp
   const consistency = volatility > 0 ? 1 / volatility : null
   const xgDelta = (data?.goalsFor !== undefined && data?.xG !== undefined) ? data.goalsFor - data.xG : null
   const xgaDelta = (data?.goalsAgainst !== undefined && data?.xGA !== undefined) ? data.goalsAgainst - data.xGA : null
-  const momentum = data?.form ? getMomentum(data.form) : null
+  const momentum = data?.form && data.form.length >= 3
+    ? (data.form.slice(-3).reduce((a, b) => a + b, 0) / 3) -
+      (data.form.slice(-5, -2).reduce((a, b) => a + b, 0) / Math.max(data.form.slice(-5, -2).length, 1))
+    : null
 
-  // Form curve (last 10 matches)
   const formHistory = data?.form?.slice(-10) || []
   const formPoints = formHistory.map((r, i) => ({
     match: i + 1,
     points: r,
-    // Simple bar height: 0-3 points -> 0-100%
     height: (r / 3) * 100,
   }))
 
-  // Expected position from distribution
-  const getExpectedPosition = (distribution: number[]) => {
-    const total = distribution.reduce((a, b) => a + b, 0)
-    if (total === 0) return 0
-    let expectedPos = 0
-    distribution.forEach((count, pos) => {
-      expectedPos += (pos + 1) * (count / total)
-    })
-    return expectedPos
-  }
-  const expectedPosition = data?.distribution ? getExpectedPosition(data.distribution) : 0
+  const expectedPosition = data?.distribution ? calculateExpectedPosition(data.distribution) : 0
 
   return (
     <div className="space-y-6 p-4">
