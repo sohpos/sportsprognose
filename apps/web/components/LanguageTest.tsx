@@ -9,7 +9,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Nächste Spiele',
     leagues: 'Ligen',
     predictions: 'Prognosen heute',
-    model: 'Modell', lambda: 'λ',
+    model: 'Modell', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
     accuracyTitle: 'Trefferquote (8 Wochen)',
     avgAccuracy: 'Ø Ergebnis-Genauigkeit',
     exactScore: 'Exakter Score (diese Woche)',
@@ -44,7 +44,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Upcoming Matches',
     leagues: 'Leagues',
     predictions: 'Predictions today',
-    model: 'Model', lambda: 'λ',
+    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
     accuracyTitle: 'Accuracy (8 weeks)',
     avgAccuracy: 'Ø Result Accuracy',
     exactScore: 'Exact Score (this week)',
@@ -79,7 +79,7 @@ const translations: Record<string, Record<string, any>> = {
     matches: 'Gelecek Maçlar',
     leagues: 'Ligler',
     predictions: 'Bugünkü Tahminler',
-    model: 'Model', lambda: 'λ',
+    model: 'Model', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', xg: 'xG', over25: 'Over 2.5', under25: 'Under 2.5', lambda: 'λ',
     accuracyTitle: 'Doğruluk (8 hafta)',
     avgAccuracy: 'Ø Sonuç Doğruluğu',
     exactScore: 'Kesin Skor (bu hafta)',
@@ -284,7 +284,7 @@ export default function LanguageTest() {
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.homeTeam.logo && <img src={match.homeTeam.logo} alt="" className="w-5 h-5" />}{match.homeTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
                     {predictions[match.id] && (
-                      <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.home}</div>
+                      <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.home.toFixed(1)}</div>
                     )}
                   </div>
                   <div className="text-slate-500 px-4 text-xl">-</div>
@@ -292,7 +292,7 @@ export default function LanguageTest() {
                     <div className="font-bold text-white text-lg flex items-center gap-2 justify-center">{match.awayTeam.logo && <img src={match.awayTeam.logo} alt="" className="w-5 h-5" />}{match.awayTeam.shortName}</div>
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
                     {predictions[match.id] && (
-                      <div className="text-[10px] text-slate-600">λ {predictions[match.id].mostLikelyScore.away}</div>
+                      <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.away.toFixed(1)}</div>
                     )}
                   </div>
                 </div>
@@ -313,6 +313,11 @@ export default function LanguageTest() {
                       <span>{t.probHome}</span>
                       <span>{t.probDraw}</span>
                       <span>{t.probAway}</span>
+                    </div>
+                    {/* Over/Under */}
+                    <div className="mt-2 pt-2 border-t border-slate-800 flex justify-between text-xs">
+                      <span className="text-orange-400">Over 2.5: {Math.round(prediction.over25Probability * 100)}%</span>
+                      <span className="text-cyan-400">Under 2.5: {Math.round(prediction.under25Probability * 100)}%</span>
                     </div>
                     {/* Score Matrix */}
                     <ScoreMatrix prediction={predictions[match.id]} t={t} />
