@@ -5,9 +5,9 @@ import { LanguageSelector } from './LanguageSelector';
 import { useState, useEffect } from 'react';
 
 const translations: Record<string, Record<string, string>> = {
-  de: { dashboard: 'Dashboard', matches: 'Spiele', accuracy: 'Trefferquote', active: 'Poisson-Modell aktiv' },
-  en: { dashboard: 'Dashboard', matches: 'Matches', accuracy: 'Accuracy', active: 'Poisson Model active' },
-  tr: { dashboard: 'Panel', matches: 'Maçlar', accuracy: 'Doğruluk', active: 'Poisson Modeli aktif' },
+  de: { dashboard: 'Dashboard', matches: 'Spiele', accuracy: 'Trefferquote', predictor: 'Predictor', active: 'Poisson-Modell aktiv' },
+  en: { dashboard: 'Dashboard', matches: 'Matches', accuracy: 'Accuracy', predictor: 'Predictor', active: 'Poisson Model active' },
+  tr: { dashboard: 'Panel', matches: 'Maçlar', accuracy: 'Doğruluk', predictor: 'Tahmin', active: 'Poisson Modeli aktif' },
 };
 
 export default function NavBar() {
@@ -32,6 +32,7 @@ export default function NavBar() {
         <div className="flex gap-1">
           {[
             { href: '/', label: t.dashboard },
+            { href: '/predictor', label: t.predictor },
             { href: '/matches', label: t.matches },
             { href: '/accuracy', label: t.accuracy },
           ].map(link => (
