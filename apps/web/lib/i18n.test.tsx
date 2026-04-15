@@ -16,11 +16,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   
   // Mock window
-  global.window = {
+  (globalThis.window as any) = {
     dispatchEvent: mockDispatch,
     addEventListener: mockAddListener,
     removeEventListener: mockRemoveListener,
-  } as Window & typeof globalThis;
+  };
 });
 
 describe('i18n - getLocale()', () => {

@@ -62,7 +62,7 @@ describe('Multi-League Support', () => {
 
     it('handles missing leagueId', () => {
       const params = { teamId: 1 };
-      const leagueId = params.leagueId || 'BL1';
+      const leagueId = (params as any).leagueId || 'BL1';
       expect(leagueId).toBe('BL1');
     });
 
