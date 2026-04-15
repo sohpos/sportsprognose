@@ -88,7 +88,7 @@ async function oldbApiGet(endpoint: string): Promise<any> {
   return data;
 }
 
-async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
+export async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
     const data = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${teamId}`);
     console.log(`[STATS] Team ${teamId}: ${data?.length || 0} matches found`);
