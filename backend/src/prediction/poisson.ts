@@ -167,6 +167,7 @@ export function predictMatch(
     mostLikelyScore,
     lambdaHome,
     lambdaAway,
+    console.log(`[PREDICT] ${matchId}: λ_home=${lambdaHome.toFixed(2)}, λ_away=${lambdaAway.toFixed(2)}`);
     scoreMatrix: scoreMatrix.map(s => ({
       ...s,
       probability: s.probability / totalProb,

@@ -91,7 +91,11 @@ async function oldbApiGet(endpoint: string): Promise<any> {
 async function getTeamStatsFromOpenligaDB(teamId: string): Promise<Pick<Team, 'avgGoalsScored' | 'avgGoalsConceded' | 'form'>> {
   try {
     const data = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${teamId}`);
-    if (!data || !data.length) return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
+    console.log(`[STATS] Team ${teamId}: ${data?.length || 0} matches found`);
+    if (!data || !data.length) {
+      console.log(`[STATS] Team ${teamId}: NO DATA, using default 1.4`);
+      return { avgGoalsScored: 1.4, avgGoalsConceded: 1.4, form: 'DDDDD' };
+    }
     
     const last10 = data.slice(-10);
     let gf = 0, ga = 0;
