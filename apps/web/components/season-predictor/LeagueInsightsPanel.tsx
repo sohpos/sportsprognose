@@ -1,3 +1,4 @@
+'use client';
 type LeagueInsightsPanelProps = {
   data: Record<string, {
     xp: number

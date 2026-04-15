@@ -1,3 +1,4 @@
+'use client';
 /**
  * Unit Tests: What-If Engine
  */

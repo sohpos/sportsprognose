@@ -1,3 +1,4 @@
+'use client';
 import { TeamInsightCard, TeamInsightGrid } from "./TeamInsightCard"
 import { PositionDistributionChart } from "./PositionDistributionChart"
 import { TeamData } from "./types"
