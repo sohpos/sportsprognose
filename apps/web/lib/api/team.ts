@@ -3,6 +3,7 @@
 export interface FormData {
   teamId: string;
   teamName: string;
+  leagueId?: string;
   form: string;
   avgGoalsScored: number;
   avgGoalsConceded: number;
@@ -15,14 +16,28 @@ export interface TeamDetailData {
   recentMatches?: any[];
 }
 
-export async function getTeamDetailData(teamId: number): Promise<TeamDetailData> {
+export interface TeamParams {
+  teamId: number;
+  leagueId?: string;
+}
+
+/**
+ * Get team detail data - league agnostic
+ * Uses leagueId to fetch from the correct adapter
+ */
+export async function getTeamDetailData(params: TeamParams): Promise<TeamDetailData> {
+  const { teamId, leagueId = 'BL1' } = params;
+  
   try {
-    // Fetch form data
-    const formRes = await fetch(`/api/form/${teamId}`);
+    // Fetch form data with league context
+    const formRes = await fetch(`/api/form/${teamId}?league=${leagueId}`);
     const form = await formRes.json();
 
     return {
-      form: form,
+      form: {
+        ...form,
+        leagueId: leagueId,
+      },
       recentMatches: [],
     };
   } catch (error) {
@@ -31,6 +46,7 @@ export async function getTeamDetailData(teamId: number): Promise<TeamDetailData>
       form: {
         teamId: String(teamId),
         teamName: `Team ${teamId}`,
+        leagueId: leagueId,
         form: 'DDDDD',
         avgGoalsScored: 1.4,
         avgGoalsConceded: 1.4,

@@ -8,6 +8,7 @@ import { FormBadge } from '@/components/FormCurve';
 
 interface TeamPageProps {
   teamId: number;
+  leagueId?: string;
   locale?: string;
 }
 
@@ -32,20 +33,20 @@ const translations: Record<string, Record<string, string>> = {
   },
 };
 
-export function TeamPage({ teamId, locale = 'de' }: TeamPageProps) {
+export function TeamPage({ teamId, leagueId = 'BL1', locale = 'de' }: TeamPageProps) {
   const [data, setData] = useState<TeamDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   
   const t = translations[locale] || translations['de'];
 
   useEffect(() => {
-    getTeamDetailData(teamId)
+    getTeamDetailData({ teamId, leagueId })
       .then(d => {
         setData(d);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [teamId]);
+  }, [teamId, leagueId]);
 
   if (loading) {
     return (

@@ -6,7 +6,8 @@ const router = Router();
 // Get detailed form curve for a team
 router.get('/:teamId', async (req, res) => {
   const { teamId } = req.params;
-  console.log(`[FORM] Request for team: ${teamId}`);
+  const { league = 'BL1' } = req.query;
+  console.log(`[FORM] Request for team: ${teamId}, league: ${league}`);
   
   try {
     // Get team stats including form
@@ -18,6 +19,7 @@ router.get('/:teamId', async (req, res) => {
     
     res.json({
       teamId,
+      leagueId: league,
       teamName: `Team ${teamId}`,
       avgGoalsScored: stats?.avgGoalsScored || 1.4,
       avgGoalsConceded: stats?.avgGoalsConceded || 1.4,
