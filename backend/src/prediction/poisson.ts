@@ -125,15 +125,11 @@ export function predictMatch(
   const confidence = Math.round(maxProb * 100);
 
   // Helper to compute Over/Under for threshold
-  function computeOverU(scoreMatrix: number[][], threshold: number): number {
+  function computeOverU(scoreMatrix: ScorelineProbability[], totalProb: number, threshold: number): number {
     let sum = 0;
-    const max = 5;
-    for (let h = 0; h <= max; h++) {
-      for (let a = 0; a <= max; a++) {
-        if (h + a > threshold) {
-          const cell = scoreMatrix[h]?.[a];
-          if (cell?.probability) sum += cell.probability;
-        }
+    for (const cell of scoreMatrix) {
+      if (cell.homeGoals + cell.awayGoals > threshold) {
+        sum += cell.probability / totalProb;
       }
     }
     return sum;
@@ -147,15 +143,14 @@ export function predictMatch(
   })).sort((a: any, b: any) => b.probability - a.probability).slice(0, 5);
 
   // Over/Under probabilities
-  const over15 = computeOverU(scoreMatrix, 1.5);
-  const over35 = computeOverU(scoreMatrix, 3.5);
+  const over15 = computeOverU(scoreMatrix, totalProb, 1.5);
+  const over35 = computeOverU(scoreMatrix, totalProb, 3.5);
   
   // BTTS (Both Teams To Score)
   let btts = 0;
-  for (let h = 1; h <= maxGoals; h++) {
-    for (let a = 1; a <= maxGoals; a++) {
-      const cell = scoreMatrix[h]?.[a];
-      if (cell?.probability) btts += cell.probability;
+  for (const cell of scoreMatrix) {
+    if (cell.homeGoals > 0 && cell.awayGoals > 0) {
+      btts += cell.probability / totalProb;
     }
   }
 
@@ -164,10 +159,10 @@ export function predictMatch(
     homeWinProbability: homeWin,
     drawProbability: draw,
     awayWinProbability: awayWin,
-    over15Probability: computeOverU(scoreMatrix, 1.5),
-    over25Probability: computeOverU(scoreMatrix, 2.5),
-    over35Probability: computeOverU(scoreMatrix, 3.5),
-    under25Probability: 1 - computeOverU(scoreMatrix, 2.5),
+    over15Probability: computeOverU(scoreMatrix, totalProb, 1.5),
+    over25Probability: computeOverU(scoreMatrix, totalProb, 2.5),
+    over35Probability: computeOverU(scoreMatrix, totalProb, 3.5),
+    under25Probability: 1 - computeOverU(scoreMatrix, totalProb, 2.5),
     bttsProbability: btts,
     mostLikelyScore,
     lambdaHome,
