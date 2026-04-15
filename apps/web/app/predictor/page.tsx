@@ -109,6 +109,7 @@ export default function SeasonPredictorDashboard() {
           fixtures={mockFixtures} 
           teams={mockTeams}
           actualPoints={mockActualPoints}
+          initialData={mockData}
         />
       </main>
     </div>

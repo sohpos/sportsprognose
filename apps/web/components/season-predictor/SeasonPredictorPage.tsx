@@ -6,17 +6,41 @@ import { SeasonChances } from "./SeasonChances"
 import { PositionDistributionChart } from "./PositionDistributionChart"
 import { TeamSummaryGrid } from "./TeamSummaryGrid"
 import { SurpriseIndex } from "./SurpriseIndex"
+import { LeagueInsightsPanel } from "./LeagueInsightsPanel"
+import { ScatterPlotXPvsActual } from "./ScatterPlotXPvsActual"
 
 type SeasonPredictorPageProps = {
   fixtures: any[]
-  teams: { id: string; name: string }[]
+  teams: { id: string; name: string; logo?: string }[]
   actualPoints?: Record<string, number>
+  // Optional: pass pre-computed data to skip simulation
+  initialData?: Record<string, {
+    xp: number
+    first: number
+    relegation: number
+    distribution: number[]
+    goalsFor?: number
+    goalsAgainst?: number
+    xG?: number
+    xGA?: number
+    form?: number[]
+    homePoints?: number
+    awayPoints?: number
+  }>
 }
 
-export function SeasonPredictorPage({ fixtures, teams, actualPoints }: SeasonPredictorPageProps) {
-  const { data, loading, progress } = useSeasonPredictor(fixtures, teams)
+export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData }: SeasonPredictorPageProps) {
+  // If initialData is provided, use it directly (no simulation needed)
+  const useDirectData = !!initialData
+  
+  const { data: simulatedData, loading, progress } = useSeasonPredictor(
+    useDirectData ? [] : fixtures, 
+    useDirectData ? [] : teams as any
+  )
+  
+  const data = initialData || simulatedData
 
-  if (loading || !data) {
+  if (!useDirectData && (loading || !data)) {
     return (
       <div className="space-y-4 p-6">
         <h1 className="text-2xl font-bold">Season Predictor</h1>
@@ -40,20 +64,44 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints }: SeasonPre
       <h1 className="text-2xl font-bold">Season Predictor</h1>
 
       <SeasonXPTable data={data} teams={teams} />
-
+      
       <SeasonChances data={data} teams={teams} />
 
-      <SurpriseIndex data={data} teams={teams} actualPoints={actualPoints} />
+      <SurpriseIndex data={data as any} teams={teams} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teams.map((t) => (
-          <PositionDistributionChart
-            key={t.id}
-            team={t}
-            distribution={data[t.id].distribution}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Positionsverteilung</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {teams.slice(0, 6).map((t) => (
+              <PositionDistributionChart
+                key={t.id}
+                team={t}
+                distribution={data?.[t.id]?.distribution || []}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <h2 className="text-lg font-semibold mb-3">xP vs Actual Points</h2>
+          <ScatterPlotXPvsActual 
+            teams={teams}
+            data={Object.fromEntries(
+              Object.entries(data || {}).map(([id, d]: [string, any]) => [
+                id,
+                {
+                  xp: d.xp,
+                  actualPoints: actualPoints?.[id] || d.xp,
+                  surprise: (actualPoints?.[id] || d.xp) - d.xp
+                }
+              ])
+            )}
           />
-        ))}
+        </div>
       </div>
+
+      <LeagueInsightsPanel data={data as any} teams={teams} />
 
       <TeamSummaryGrid data={data} teams={teams} />
     </div>
