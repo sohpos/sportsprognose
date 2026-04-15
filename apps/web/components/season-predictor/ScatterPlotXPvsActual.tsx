@@ -1,3 +1,4 @@
+'use client';
 type ScatterPlotProps = {
   teams: { id: string; name: string }[]
   data: Record<string, { xp: number; actualPoints: number; surprise: number }>
@@ -107,13 +108,7 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
                 fill={color}
                 className="transition-all hover:scale-150 cursor-pointer"
               >
-                <title>
-                  {p.name}
-                  {"\n"}xP: {p.xp.toFixed(1)}
-                  {"\n"}Actual: {p.actual}
-                  {"\n"}Δ: {p.surprise.toFixed(1)}
-                  {"\n"}Type: {quad === 'efficient' ? 'Good & Efficient' : quad === 'lucky' ? 'Lucky' : quad === 'unlucky' ? 'Unlucky' : 'Bad & Inefficient'}
-                </title>
+                <title>{[p.name, `xP: ${p.xp.toFixed(1)}`, `Actual: ${p.actual}`, `Δ: ${p.surprise.toFixed(1)}`, `Type: ${quad === 'efficient' ? 'Good & Efficient' : quad === 'lucky' ? 'Lucky' : quad === 'unlucky' ? 'Unlucky' : 'Bad & Inefficient'}`].join('\n')}</title>
               </circle>
             </g>
           )
