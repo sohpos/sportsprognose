@@ -173,6 +173,8 @@ export function predictMatch(
     under25Probability: 1 - over25,
     bttsProbability: btts,
     mostLikelyScore,
+    lambdaHome,
+    lambdaAway,
     scoreMatrix: scoreMatrix.map(s => ({
       ...s,
       probability: s.probability / totalProb,
