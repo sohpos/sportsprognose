@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getTeamStatsFromOpenligaDB } from '../services/footballDataApi';
+import { getTeamStatsFromOpenligaDB } from '../../services/footballDataApi';
 
 const router = Router();
 
