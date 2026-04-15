@@ -158,12 +158,14 @@ async function getMatchesFromOpenLigaDB(leagueId: string): Promise<Match[]> {
           id: String(m.team1.teamId),
           name: m.team1.teamName,
           shortName: m.team1.teamShortcut,
+          logo: m.team1.teamIconUrl || undefined,
           ...homeStats,
         },
         awayTeam: {
           id: String(m.team2.teamId),
           name: m.team2.teamName,
           shortName: m.team2.teamShortcut,
+          logo: m.team2.teamIconUrl || undefined,
           ...awayStats,
         },
       };
