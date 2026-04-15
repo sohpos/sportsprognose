@@ -12,6 +12,34 @@ const router = Router();
 
 const predictionCache = new Map<string, ReturnType<typeof predictMatch>>();
 
+// Get Head-to-Head matches between two teams
+router.get('/h2h/:team1Id/:team2Id', async (req, res) => {
+  const { team1Id, team2Id } = req.params;
+  console.log(`[H2H] Request: ${team1Id} vs ${team2Id}`);
+  try {
+    const h2h = await getHeadToHead(team1Id, team2Id);
+    console.log(`[H2H] Found: ${h2h.length} matches`);
+    
+    // Calculate H2H stats
+    const stats = {
+      totalMatches: h2h.length,
+      homeWins: h2h.filter(m => m.homeGoals > m.awayGoals).length,
+      awayWins: h2h.filter(m => m.awayGoals > m.homeGoals).length,
+      draws: h2h.filter(m => m.homeGoals === m.awayGoals).length,
+      btts: h2h.filter(m => m.homeGoals > 0 && m.awayGoals > 0).length,
+      over25: h2h.filter(m => (m.homeGoals + m.awayGoals) > 2).length,
+      avgGoals: h2h.length > 0 
+        ? (h2h.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) / h2h.length).toFixed(2)
+        : '0',
+    };
+    
+    res.json({ h2h, stats });
+  } catch (e) {
+    console.error('[H2H] Error:', e);
+    res.json({ h2h: [], stats: {} });
+  }
+});
+
 router.get('/:matchId', async (req, res) => {
   const { matchId } = req.params;
 
@@ -83,16 +111,3 @@ router.get('/past', async (req, res) => {
 });
 
 export default router;
-// H2H endpoint
-router.get('/h2h/:team1Id/:team2Id', async (req, res) => {
-  const { team1Id, team2Id } = req.params;
-  console.log(`[H2H] Request: ${team1Id} vs ${team2Id}`);
-  try {
-    const h2h = await getHeadToHead(team1Id, team2Id);
-    console.log(`[H2H] Found: ${h2h.length} matches`);
-    res.json({ h2h });
-  } catch (e) {
-    console.error('[H2H] Error:', e);
-    res.json({ h2h: [] });
-  }
-});
