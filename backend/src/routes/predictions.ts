@@ -85,6 +85,13 @@ export default router;
 // H2H endpoint
 router.get('/h2h/:team1Id/:team2Id', async (req, res) => {
   const { team1Id, team2Id } = req.params;
-  const h2h = await getHeadToHead(team1Id, team2Id);
-  res.json({ h2h });
+  console.log(`[H2H] Request: ${team1Id} vs ${team2Id}`);
+  try {
+    const h2h = await getHeadToHead(team1Id, team2Id);
+    console.log(`[H2H] Found: ${h2h.length} matches`);
+    res.json({ h2h });
+  } catch (e) {
+    console.error('[H2H] Error:', e);
+    res.json({ h2h: [] });
+  }
 });

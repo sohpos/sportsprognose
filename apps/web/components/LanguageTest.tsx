@@ -345,10 +345,20 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
   // Load H2H data when button clicked
   useEffect(() => {
     if (showH2h && match.homeTeam.id && match.awayTeam.id) {
+      console.log('[H2H] Fetching:', match.homeTeam.id, match.awayTeam.id);
       fetch(`/api/predictions/h2h/${match.homeTeam.id}/${match.awayTeam.id}`)
-        .then(r => r.json())
-        .then(d => setH2hData(d.h2h || []))
-        .catch(() => setH2hData([]));
+        .then(r => {
+          console.log('[H2H] Status:', r.status);
+          return r.json();
+        })
+        .then(d => {
+          console.log('[H2H] Data:', d);
+          setH2hData(d.h2h || []);
+        })
+        .catch(e => {
+          console.error('[H2H] Error:', e);
+          setH2hData([]);
+        });
     }
   }, [showH2h, match.homeTeam.id, match.awayTeam.id]);
   const matrix = prediction.scoreMatrix || [];
@@ -371,9 +381,12 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
         {showH2h ? '▼' : '▶'} H2H
       </button>
       
-      {showH2h && h2hData.length > 0 && (
+      {showH2h && (
         <div className="mt-2 p-2 bg-slate-800 rounded text-xs w-full">
           <div className="text-slate-400 mb-1">Head-to-Head (letzte Spiele)</div>
+          {h2hData.length === 0 ? (
+            <div className="text-slate-500">Keine H2H-Daten verfügbar</div>
+          ) : (
           <div className="flex flex-col gap-1">
           {h2hData.map((m, i) => (
             <div key={i} className="flex justify-between text-slate-300 w-full">
@@ -383,6 +396,7 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
             </div>
           ))}
           </div>
+          )}
         </div>
       )}
       
