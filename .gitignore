@@ -9,3 +9,10 @@ build/
 .env.local
 data/apps/*/next-env.d.ts
 backend/data/
+
+# Test artifacts
+test-results/
+*.snapshots/
+playwright-report/
+.playwright/
+coverage/
