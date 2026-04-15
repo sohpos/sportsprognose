@@ -18,9 +18,33 @@ Object.defineProperty(globalThis, 'localStorage', {
   writable: true,
 });
 
+// Mock document
+if (typeof document !== 'undefined') {
+  Object.defineProperty(document, 'documentElement', {
+    value: {
+      classList: {
+        add: vi.fn(),
+        remove: vi.fn(),
+        contains: vi.fn(() => false),
+      },
+    },
+    writable: true,
+  });
+}
+
 // Mock window
 (globalThis.window as any) = {
   dispatchEvent: vi.fn(),
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
+  matchMedia: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 };
