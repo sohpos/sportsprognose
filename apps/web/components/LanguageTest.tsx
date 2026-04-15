@@ -285,7 +285,7 @@ export default function LanguageTest() {
                     <div className="text-[10px] text-slate-500">{match.homeTeam.name}</div>
                     <FormBadge form={match.homeTeam.form} t={t} />
                     {predictions[match.id] && (
-                      <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.home.toFixed(1)}</div>
+                      <div className="text-[10px] text-orange-400">λ {predictions[match.id].lambdaHome?.toFixed(1)}</div>
                     )}
                   </div>
                   <div className="text-slate-500 px-4 text-xl">-</div>
@@ -294,7 +294,7 @@ export default function LanguageTest() {
                     <div className="text-[10px] text-slate-500">{match.awayTeam.name}</div>
                     <FormBadge form={match.awayTeam.form} t={t} />
                     {predictions[match.id] && (
-                      <div className="text-[10px] text-orange-400">xG {predictions[match.id].mostLikelyScore.away.toFixed(1)}</div>
+                      <div className="text-[10px] text-orange-400">λ {predictions[match.id].lambdaAway?.toFixed(1)}</div>
                     )}
                   </div>
                 </div>

@@ -82,7 +82,6 @@ export function predictMatch(
   let homeWin = 0;
   let draw = 0;
   let awayWin = 0;
-  let over25 = 0;
   let totalProb = 0;
 
   let bestProb = 0;
@@ -102,7 +101,6 @@ export function predictMatch(
       else if (h === a) draw += prob;
       else awayWin += prob;
 
-      if (h + a > 2.5) over25 += prob;
 
       if (prob > bestProb) {
         bestProb = prob;
@@ -115,7 +113,6 @@ export function predictMatch(
   homeWin /= totalProb;
   draw /= totalProb;
   awayWin /= totalProb;
-  over25 /= totalProb;
 
   // Determine predicted outcome
   const maxProb = Math.max(homeWin, draw, awayWin);
@@ -167,10 +164,10 @@ export function predictMatch(
     homeWinProbability: homeWin,
     drawProbability: draw,
     awayWinProbability: awayWin,
-    over15Probability: over15,
-    over25Probability: over25,
-    over35Probability: over35,
-    under25Probability: 1 - over25,
+    over15Probability: computeOverU(scoreMatrix, 1.5),
+    over25Probability: computeOverU(scoreMatrix, 2.5),
+    over35Probability: computeOverU(scoreMatrix, 3.5),
+    under25Probability: 1 - computeOverU(scoreMatrix, 2.5),
     bttsProbability: btts,
     mostLikelyScore,
     lambdaHome,
