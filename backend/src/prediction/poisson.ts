@@ -127,6 +127,21 @@ export function predictMatch(
   // Confidence: how dominant is the top outcome?
   const confidence = Math.round(maxProb * 100);
 
+  // Helper to compute Over/Under for threshold
+  function computeOverU(matrices: number[][], threshold: number): number {
+    let sum = 0;
+    const max = 5;
+    for (let h = 0; h <= max; h++) {
+      for (let a = 0; a <= max; a++) {
+        if (h + a > threshold) {
+          const cell = matrices[h]?.[a];
+          if (cell?.probability) sum += cell.probability;
+        }
+      }
+    }
+    return sum;
+  }
+
   // Top 5 most likely scores
   const allScores = scoreMatrix.flat().map((row: any, idx: number) => ({
     homeGoals: Math.floor(idx / (maxGoals + 1)),
@@ -134,13 +149,29 @@ export function predictMatch(
     probability: row.probability
   })).sort((a: any, b: any) => b.probability - a.probability).slice(0, 5);
 
+  // Over/Under probabilities
+  const over15 = computeOverU(matrices, 1.5);
+  const over35 = computeOverU(matrices, 3.5);
+  
+  // BTTS (Both Teams To Score)
+  let btts = 0;
+  for (let h = 1; h <= maxGoals; h++) {
+    for (let a = 1; a <= maxGoals; a++) {
+      const cell = matrices[h]?.[a];
+      if (cell?.probability) btts += cell.probability;
+    }
+  }
+
   return {
     matchId,
     homeWinProbability: homeWin,
     drawProbability: draw,
     awayWinProbability: awayWin,
+    over15Probability: over15,
     over25Probability: over25,
+    over35Probability: over35,
     under25Probability: 1 - over25,
+    bttsProbability: btts,
     mostLikelyScore,
     scoreMatrix: scoreMatrix.map(s => ({
       ...s,

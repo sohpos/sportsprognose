@@ -36,7 +36,7 @@ const translations: Record<string, Record<string, any>> = {
     probDraw: 'Unentschieden',
     probAway: 'Gast',
     confidence: 'Sicherheit',
-    form: { w: 'S', d: 'U', n: 'N' },
+    form: { w: 'S', d: 'U', n: 'N', last5: 'Letzte 5' },
   },
   en: { 
     title: 'AI Football Predictions', 
@@ -314,10 +314,13 @@ export default function LanguageTest() {
                       <span>{t.probDraw}</span>
                       <span>{t.probAway}</span>
                     </div>
-                    {/* Over/Under */}
-                    <div className="mt-2 pt-2 border-t border-slate-800 flex justify-between text-xs">
-                      <span className="text-orange-400">Over 2.5: {Math.round(prediction.over25Probability * 100)}%</span>
-                      <span className="text-cyan-400">Under 2.5: {Math.round(prediction.under25Probability * 100)}%</span>
+                    {/* Over/Under and BTTS */}
+                    <div className="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-1 text-xs">
+                      <span className="text-orange-400">O 1.5: {Math.round((prediction.over15Probability || 0) * 100)}%</span>
+                      <span className="text-orange-400">O 2.5: {Math.round(prediction.over25Probability * 100)}%</span>
+                      <span className="text-orange-400">O 3.5: {Math.round((prediction.over35Probability || 0) * 100)}%</span>
+                      <span className="text-cyan-400">U 2.5: {Math.round(prediction.under25Probability * 100)}%</span>
+                      <span className="text-pink-400 col-span-2">BTTS: {Math.round((prediction.bttsProbability || 0) * 100)}%</span>
                     </div>
                     {/* Score Matrix */}
                     <ScoreMatrix prediction={predictions[match.id]} t={t} />
@@ -386,6 +389,28 @@ function ScoreMatrix({ prediction, t }: { prediction: any; t: any }) {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+// Form Badge - Shows last 5 game results with colors
+function FormBadge({ form, t }: { form: string; t: any }) {
+  if (!form || form.length === 0) return null;
+  
+  const last5 = form.slice(-5).split('');
+  
+  return (
+    <div className="flex gap-0.5 mt-1" title={t.formLast5 || 'Letzte 5 Spiele'}>
+      {last5.map((r, i) => (
+        <span
+          key={i}
+          className={`w-4 h-4 rounded-sm text-[9px] font-bold flex items-center justify-center ${
+            r === 'W' ? 'bg-green-500/80' : r === 'D' ? 'bg-yellow-500/80' : 'bg-red-500/80'
+          }`}
+        >
+          {r === 'W' ? (t.form?.w || 'S') : r === 'D' ? (t.form?.d || 'U') : (t.form?.n || 'N')}
+        </span>
+      ))}
     </div>
   );
 }
