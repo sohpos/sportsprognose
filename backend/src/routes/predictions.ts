@@ -1,112 +1,117 @@
-import { Router } from 'express';
-import { getMatchById, getPastMatches, getHeadToHead } from '../services/footballDataApi';
-import { predictMatch, addValueBets } from '../prediction/poisson';
-import { savePrediction, getAccuracyStats } from '../db/database';
-import crypto from 'crypto';
+import { Router, Request, Response } from 'express';
+import { predictMatch, addValueToPrediction } from '../core/predictor';
+import { TeamStrength } from '../core/types';
+import { getAllTeams, getTeamStats, getTeamForm, getLeagueTable } from '../services/footballDataApi';
 
-function uuidv4(): string {
-  return crypto.randomUUID();
+// Helper to get strength from API data
+function getStrengthFromStats(stats: any): TeamStrength {
+  return {
+    teamId: stats.teamId || 'unknown',
+    league: stats.league || 'BL1',
+    attackStrength: stats.xG ? stats.xG / 50 : 1.0, // Normalize
+    defenseStrength: stats.xGA ? 50 / stats.xGA : 1.0,
+    form: stats.form || [1,1,1,1,1],
+    homeAdvantage: 1.1,
+    lastUpdate: new Date().toISOString(),
+  };
 }
 
 const router = Router();
 
-const predictionCache = new Map<string, ReturnType<typeof predictMatch>>();
-
-// Get Head-to-Head matches between two teams
-router.get('/h2h/:team1Id/:team2Id', async (req, res) => {
-  const { team1Id, team2Id } = req.params;
-  console.log(`[H2H] Request: ${team1Id} vs ${team2Id}`);
-  try {
-    const h2h = await getHeadToHead(team1Id, team2Id);
-    console.log(`[H2H] Found: ${h2h.length} matches`);
-    
-    // Calculate H2H stats
-    const stats = {
-      totalMatches: h2h.length,
-      homeWins: h2h.filter(m => m.homeGoals > m.awayGoals).length,
-      awayWins: h2h.filter(m => m.awayGoals > m.homeGoals).length,
-      draws: h2h.filter(m => m.homeGoals === m.awayGoals).length,
-      btts: h2h.filter(m => m.homeGoals > 0 && m.awayGoals > 0).length,
-      over25: h2h.filter(m => (m.homeGoals + m.awayGoals) > 2).length,
-      avgGoals: h2h.length > 0 
-        ? (h2h.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) / h2h.length).toFixed(2)
-        : '0',
-    };
-    
-    res.json({ h2h, stats });
-  } catch (e) {
-    console.error('[H2H] Error:', e);
-    res.json({ h2h: [], stats: {} });
-  }
-});
-
-router.get('/:matchId', async (req, res) => {
+// GET /api/predictions/:matchId
+router.get('/predictions/:matchId', async (req: Request, res: Response) => {
   const { matchId } = req.params;
-
-  if (predictionCache.has(matchId)) {
-    return res.json({ prediction: predictionCache.get(matchId) });
-  }
-
-  const match = await getMatchById(matchId);
-  if (!match) {
-    return res.status(404).json({ error: 'Match not found' });
-  }
-
-  const prediction = predictMatch(
-    {
-      avgGoalsScored: match.homeTeam.avgGoalsScored,
-      avgGoalsConceded: match.homeTeam.avgGoalsConceded,
-    },
-    {
-      avgGoalsScored: match.awayTeam.avgGoalsScored,
-      avgGoalsConceded: match.awayTeam.avgGoalsConceded,
-    },
-    matchId
-  );
+  const { homeOdds, drawOdds, awayOdds } = req.query;
 
   try {
-    savePrediction({
-      id: uuidv4(),
-      match_id: matchId,
-      home_team: match.homeTeam.name,
-      away_team: match.awayTeam.name,
-      league: match.leagueName,
-      match_date: match.utcDate,
-      home_win_prob: prediction.homeWinProbability,
-      draw_prob: prediction.drawProbability,
-      away_win_prob: prediction.awayWinProbability,
-      over25_prob: prediction.over25Probability,
-      predicted_outcome: prediction.predictedOutcome,
-      confidence: prediction.confidence,
-      most_likely_home: prediction.mostLikelyScore.home,
-      most_likely_away: prediction.mostLikelyScore.away,
+    // Get teams from database (or API)
+    const [homeId, awayId] = matchId.split('-vs-');
+    
+    const homeStats = await getTeamStats(homeId);
+    const awayStats = await getTeamStats(awayId);
+
+    if (!homeStats || !awayStats) {
+      res.status(404).json({ error: 'Teams not found' });
+      return;
+    }
+
+    const homeStrength = getStrengthFromStats(homeStats);
+    const awayStrength = getStrengthFromStats(awayStats);
+
+    // Create match object
+    const match: any = {
+      id: matchId,
+      homeTeam: { id: homeId },
+      awayTeam: { id: awayId },
+    };
+
+    // Generate prediction
+    let prediction = predictMatch(match, homeStrength, awayStrength);
+
+    // Add odds if provided
+    if (homeOdds && drawOdds && awayOdds) {
+      prediction = addValueToPrediction(
+        prediction,
+        parseFloat(homeOdds as string),
+        parseFloat(drawOdds as string),
+        parseFloat(awayOdds as string)
+      );
+    }
+
+    res.json({
+      matchId,
+      prediction,
     });
-  } catch (e) {
-    console.warn('DB save failed (non-critical):', e);
-  }
-
-  predictionCache.set(matchId, prediction);
-  const predictionWithValue = addValueBets(prediction);
-  return res.json({ prediction: predictionWithValue });
-});
-
-router.get('/stats/accuracy', (_req, res) => {
-  try {
-    const stats = getAccuracyStats();
-    res.json({ stats });
-  } catch (e) {
-    res.status(500).json({ error: 'Failed to load accuracy stats' });
+  } catch (error) {
+    console.error('Prediction error:', error);
+    res.status(500).json({ error: 'Failed to generate prediction' });
   }
 });
 
-// Get past matches for display
-router.get('/past', async (req, res) => {
-  const { league } = req.query;
+// GET /api/teams - All teams
+router.get('/teams', async (_req: Request, res: Response) => {
   try {
-    const matches = await getPastMatches(league as string | undefined);
-    res.json({ matches, total: matches.length });
-  } catch (e) {
-    res.status(500).json({ error: 'Failed to load past matches' });
+    const teams = await getAllTeams();
+    res.json({ teams });
+  } catch (error) {
+    console.error('Teams error:', error);
+    res.status(500).json({ error: 'Failed to fetch teams' });
+  }
+});
+
+// GET /api/table/:league - League table
+router.get('/table/:league', async (req: Request, res: Response) => {
+  try {
+    const { league } = req.params;
+    const table = await getLeagueTable(league);
+    res.json({ league, table });
+  } catch (error) {
+    console.error('Table error:', error);
+    res.status(500).json({ error: 'Failed to fetch table' });
+  }
+});
+
+// GET /api/form/:teamId - Team form
+router.get('/form/:teamId', async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const form = await getTeamForm(teamId);
+    res.json({ teamId, form });
+  } catch (error) {
+    console.error('Form error:', error);
+    res.status(500).json({ error: 'Failed to fetch form' });
+  }
+});
+
+// GET /api/stats/:teamId
+router.get('/stats/:teamId', async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const stats = await getTeamStats(teamId);
+    res.json({ teamId, stats });
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 

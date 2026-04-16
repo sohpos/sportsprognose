@@ -5,7 +5,8 @@ export * from './types';
 export * from './poisson';
 export * from './teamStrength';
 export * from './value';
-export * from './predictor';
+export * from './predictor'
+export * from './monteCarlo';
 
 // Constants
 export const MAX_GOALS = 6;
