@@ -9,6 +9,12 @@ export { LeagueInsightsPanel } from "./LeagueInsightsPanel"
 export { ScatterPlotXPvsActual } from "./ScatterPlotXPvsActual"
 export { TeamDetailPage } from "./TeamDetailPage"
 
+// New EPIC 1 Components
+export { XGxGADeltaChart } from "./XGxGADeltaChart"
+export { HomeAwaySplit } from "./HomeAwaySplit"
+export { MomentumCurve } from "./MomentumCurve"
+export { TeamDNARadar } from "./TeamDNARadar"
+
 // Types
 export * from "./types"
 
