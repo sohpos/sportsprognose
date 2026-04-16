@@ -74,7 +74,7 @@ export function TeamInsightCard({ team, data, compact = false }: TeamInsightCard
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-3">
           <Metric label="Expected Points" value={xp.toFixed(1)} />
-          {delta !== null && Metric(label="Delta" value={`${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`} positive={delta >= 0} negative={delta < 0} />
+          {delta !== null && Metric(label="Delta" value={`${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`} positive={delta >= 0} negative={delta < 0} )}
           {luckFactor !== null && Metric(label="Luck Factor" value={`${luckFactor >= 0 ? '+' : ''}${luckFactor.toFixed(0)}%`} positive={luckFactor >= 0} negative={luckFactor < 0} />
         </div>
         <div className="space-y-3">
