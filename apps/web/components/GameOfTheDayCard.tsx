@@ -1,4 +1,3 @@
-// apps/web/components/GameOfTheDayCard.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -23,17 +22,23 @@ const translations: Record<string, Record<string, string>> = {
   },
 };
 
+// Normalize 0–1 or 0–100 values
+const normalizePct = (v: number) => (v <= 1 ? v * 100 : v);
+
 // Inline components for simplicity
 function ConfidenceHeatbar({ confidence }: { confidence: number }) {
-  const pct = Math.round(confidence);
+  const pct = Math.round(normalizePct(confidence));
   let color = 'bg-red-500';
   if (pct >= 60) color = 'bg-yellow-500';
   if (pct >= 75) color = 'bg-green-500';
-  
+
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div className={`h-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full ${color} transition-all duration-500`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       <span className="text-[10px] font-medium text-slate-400">{pct}%</span>
     </div>
@@ -43,13 +48,21 @@ function ConfidenceHeatbar({ confidence }: { confidence: number }) {
 export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
   const [gotd, setGotd] = useState<GameOfTheDay | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const t = translations[locale] || translations['de'];
+
+  const localeMap: Record<string, string> = {
+    de: 'de-DE',
+    en: 'en-US',
+    tr: 'tr-TR',
+  };
+
+  const dateLocale = localeMap[locale] ?? 'de-DE';
 
   useEffect(() => {
     getGameOfTheDay()
-      .then(data => {
-        setGotd(data);
+      .then((data) => {
+        setGotd(data ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -71,15 +84,24 @@ export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
     );
   }
 
-  const marketSymbol = gotd.market === 'HOME' ? '1' : gotd.market === 'DRAW' ? 'X' : '2';
-  const edgePercent = Math.round(gotd.edge * 100);
+  const marketSymbol =
+    gotd.market === 'HOME'
+      ? '1'
+      : gotd.market === 'DRAW'
+      ? 'X'
+      : gotd.market === 'AWAY'
+      ? '2'
+      : '?';
+
+  const edgePercent = Math.round(normalizePct(gotd.edge));
   const isPositiveEdge = edgePercent > 0;
 
+  const confidencePct = Math.round(normalizePct(gotd.confidence));
+  const suspensePct = Math.round(normalizePct(gotd.suspense));
+  const scorePct = Math.round(normalizePct(gotd.score));
+
   return (
-    <div 
-      className="card p-4 border-2 border-green-500/30" 
-      data-testid="gotd-card"
-    >
+    <div className="card p-4 border-2 border-green-500/30" data-testid="gotd-card">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -91,16 +113,21 @@ export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
             {gotd.homeTeam} — {gotd.awayTeam}
           </div>
           <div className="text-xs text-slate-400">
-            {new Date(gotd.date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : locale === 'en' ? 'en-US' : 'de-DE', { 
-              weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+            {new Date(gotd.date).toLocaleDateString(dateLocale, {
+              weekday: 'short',
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </div>
         </div>
-        
+
         {/* Value Badge */}
         <div className="text-right">
           <div className={`text-xl font-bold ${isPositiveEdge ? 'text-green-400' : 'text-slate-400'}`}>
-            {isPositiveEdge ? '+' : ''}{edgePercent}%
+            {isPositiveEdge ? '+' : ''}
+            {edgePercent}%
           </div>
           <div className="text-xs text-slate-500">{t.edge}</div>
           <div className="flex items-center gap-1 mt-1">
@@ -116,7 +143,7 @@ export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
       <div className="mb-3">
         <div className="flex justify-between text-xs mb-1">
           <span className="text-slate-400">{t.confidence}</span>
-          <span className="text-slate-400">{Math.round(gotd.confidence)}%</span>
+          <span className="text-slate-400">{confidencePct}%</span>
         </div>
         <ConfidenceHeatbar confidence={gotd.confidence} />
       </div>
@@ -125,15 +152,11 @@ export function GameOfTheDayCard({ locale = 'de' }: GameOfTheDayCardProps) {
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="bg-slate-800/50 p-2 rounded">
           <div className="text-slate-500">{t.suspense}</div>
-          <div className="text-purple-400 font-bold">
-            {(gotd.suspense * 100).toFixed(0)}%
-          </div>
+          <div className="text-purple-400 font-bold">{suspensePct}%</div>
         </div>
         <div className="bg-slate-800/50 p-2 rounded">
           <div className="text-slate-500">Composite</div>
-          <div className="text-yellow-400 font-bold">
-            {(gotd.score * 100).toFixed(0)}
-          </div>
+          <div className="text-yellow-400 font-bold">{scorePct}</div>
         </div>
       </div>
     </div>
