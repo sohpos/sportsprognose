@@ -31,12 +31,12 @@ export function LanguageSelector() {
   };
 
   return (
-    <select 
+    <select
       value={currentLocale}
       onChange={handleChange}
       className="px-3 py-2 rounded-lg text-sm bg-slate-800 border border-slate-600 text-white hover:border-green-400 focus:border-green-400 focus:outline-none cursor-pointer transition-colors"
     >
-      {LANGUAGES.map(lang => (
+      {LANGUAGES.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.flag} {lang.name}
         </option>

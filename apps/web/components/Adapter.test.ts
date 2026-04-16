@@ -1,5 +1,7 @@
+'use client';
+
 /**
- * Adapter Tests
+ * Unit Tests: Adapter System + Unified Types
  */
 
 import { describe, it, expect } from 'vitest';

@@ -28,8 +28,7 @@ const TranslationContext = createContext<TranslationContextValue>({
 export function TranslationProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('de');
   const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Use a simple translation object instead of i18next on server
+
   const translations: Record<Locale, Record<string, string>> = {
     de: {
       'app:title': 'KI-Fußballprognosen',
@@ -103,12 +102,10 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     },
   };
 
-  // Load saved locale on mount
   useEffect(() => {
-    // FIRST: Check localStorage directly
     const saved = localStorage.getItem(STORAGE_KEY);
     console.log('TranslationContext: localStorage shows:', saved);
-    
+
     if (saved && saved in translations) {
       setLocale(saved as Locale);
       console.log('TranslationContext: set to saved:', saved);
@@ -118,7 +115,6 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     setIsInitialized(true);
   }, []);
 
-  // Listen for language changes
   useEffect(() => {
     const handler = (e: Event) => {
       const newLocale = (e as CustomEvent).detail as Locale;
