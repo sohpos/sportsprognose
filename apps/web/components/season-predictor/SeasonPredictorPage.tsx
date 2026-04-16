@@ -24,7 +24,7 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
     useDirectData ? [] : teams as any
   )
   
-  const data = initialData || simulatedData
+  const data = initialData || simulatedData; console.log("DEBUG data:", !!data, "initialData:", !!initialData, "sim:", !!simulatedData);
 
   if (!useDirectData && (loading || !data)) {
     return (
