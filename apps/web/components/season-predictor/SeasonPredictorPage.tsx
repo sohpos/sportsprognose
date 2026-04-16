@@ -1,30 +1,37 @@
 'use client';
 
-import { useSeasonPredictor } from "@/hooks/useSeasonPredictor"
-import { SeasonXPTable } from "./SeasonXPTable"
-import { SeasonChances } from "./SeasonChances"
-import { PositionDistributionChart } from "./PositionDistributionChart"
-import { TeamSummaryGrid } from "./TeamSummaryGrid"
-import { SurpriseIndex } from "./SurpriseIndex"
-import { LeagueInsightsPanel } from "./LeagueInsightsPanel"
-import { ScatterPlotXPvsActual } from "./ScatterPlotXPvsActual"
+import { useSeasonPredictor } from "@/hooks/useSeasonPredictor";
+import { SeasonXPTable } from "./SeasonXPTable";
+import { SeasonChances } from "./SeasonChances";
+import { PositionDistributionChart } from "./PositionDistributionChart";
+import { TeamSummaryGrid } from "./TeamSummaryGrid";
+import { SurpriseIndex } from "./SurpriseIndex";
+import { LeagueInsightsPanel } from "./LeagueInsightsPanel";
+import { ScatterPlotXPvsActual } from "./ScatterPlotXPvsActual";
 
 type SeasonPredictorPageProps = {
-  fixtures?: any[]
-  teams: { id: string; name: string; logo?: string }[]
-  actualPoints?: Record<string, number>
-  initialData?: Record<string, any>
-}
+  fixtures?: any[];
+  teams: { id: string; name: string; logo?: string }[];
+  actualPoints?: Record<string, number>;
+  initialData?: Record<string, any>;
+};
 
-export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData }: SeasonPredictorPageProps) {
-  const useDirectData = !!(initialData || actualPoints)
-  
+export function SeasonPredictorPage({
+  fixtures,
+  teams,
+  actualPoints,
+  initialData
+}: SeasonPredictorPageProps) {
+
+  const useDirectData = !!(initialData || actualPoints);
+
+  // ❗ Hook nur ausführen, wenn Simulation nötig ist
   const { data: simulatedData, loading, progress } = useSeasonPredictor(
-    useDirectData ? [] : fixtures || [], 
-    useDirectData ? [] : teams as any
-  )
-  
-  const data = initialData || simulatedData; 
+    useDirectData ? [] : fixtures || [],
+    useDirectData ? [] : teams
+  );
+
+  const data = useDirectData ? initialData : simulatedData;
 
   if (!useDirectData && (loading || !data)) {
     return (
@@ -32,18 +39,19 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
         <h1 className="text-2xl font-bold text-white">Season Predictor</h1>
         <div className="rounded-xl bg-white dark:bg-neutral-900 p-4 shadow-lg">
           <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
-            Simulation läuft ({progress}% von 100.000 Iterationen)…
+            Simulation läuft ({progress ?? 0}% von 100.000 Iterationen)…
           </p>
           <div className="h-2 w-full rounded bg-neutral-200 dark:bg-neutral-800">
             <div
               className="h-2 rounded bg-blue-500 transition-all"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${progress ?? 0}%` }}
             />
           </div>
         </div>
       </div>
-    )
+    );
   }
+
   return (
     <div className="space-y-8">
       {/* xP Table */}
@@ -51,7 +59,7 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
         <h2 className="text-xl font-bold text-white mb-4">Expected Points</h2>
         <SeasonXPTable data={data as any} teams={teams} />
       </section>
-      
+
       {/* Season Chances */}
       <section>
         <SeasonChances data={data as any} teams={teams} />
@@ -77,19 +85,22 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
             ))}
           </div>
         </section>
-        
+
         <section>
-          <ScatterPlotXPvsActual 
+          <ScatterPlotXPvsActual
             teams={teams}
             data={Object.fromEntries(
-              Object.entries(data || {}).map(([id, d]: [string, any]) => [
-                id,
-                {
-                  xp: d.xp,
-                  actualPoints: actualPoints?.[id] || d.xp,
-                  surprise: (actualPoints?.[id] || d.xp) - d.xp
-                }
-              ])
+              Object.entries(data || {}).map(([id, d]: [string, any]) => {
+                const actual = actualPoints?.[id] ?? d.xp;
+                return [
+                  id,
+                  {
+                    xp: d.xp,
+                    actualPoints: actual,
+                    surprise: actual - d.xp
+                  }
+                ];
+              })
             )}
           />
         </section>
@@ -107,5 +118,5 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
         <TeamSummaryGrid data={data as any} teams={teams} />
       </section>
     </div>
-  )
+  );
 }
