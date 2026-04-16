@@ -18,8 +18,8 @@ export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
     name: t.name,
     logo: t.logo,
     xp: data[t.id]?.xp ?? 0,
-    championProb: data[t.id]?.first ?? 0,
-    relegationProb: data[t.id]?.relegation ?? 0,
+    championProb: data[t.id]?.championProb ?? 0,
+    relegationProb: data[t.id]?.relegationProb ?? 0,
   })).filter(r => r.xp > 0)
 
   if (rows.length === 0) {
@@ -81,12 +81,12 @@ export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
                   
                   {/* Meister % - right aligned, green */}
                   <td className="py-2.5 px-2 text-right font-mono text-green-600 dark:text-green-400 w-20">
-                    {formatPercent(r.first)}
+                    {formatPercent(r.championProb)}
                   </td>
                   
                   {/* Abstieg % - right aligned, red */}
                   <td className="py-2.5 px-2 text-right font-mono text-red-500 dark:text-red-400 w-20">
-                    {formatPercent(r.relegation)}
+                    {formatPercent(r.relegationProb)}
                   </td>
                 </tr>
               ))}
