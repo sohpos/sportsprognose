@@ -1,5 +1,15 @@
 import type { Metadata } from 'next';
 import { SeasonPredictorPage } from '@/components/season-predictor';
+import { generateSeasonData, generateMatchData } from './mockData';
+import { BUNDESLIGA_TEAMS } from '@/components/season-predictor/teams';
+
+// Transform teams to correct format
+const mockTeams = BUNDESLIGA_TEAMS.map(t => ({
+  id: t.id,
+  name: t.name,
+  shortName: t.short,
+  logo: t.logo,
+}));
 
 export const metadata: Metadata = {
   title: 'SportsPrognose – Season Predictor',
@@ -7,13 +17,16 @@ export const metadata: Metadata = {
 };
 
 export default function SeasonPredictorDashboard() {
-  // Page components handle their own data via hook
+  const seasonData = generateSeasonData();
+  const mockMatches = generateMatchData();
+  
   return (
     <div className="min-h-screen bg-neutral-950">
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         <SeasonPredictorPage 
-          fixtures={[]} 
-          teams={[]} 
+          fixtures={mockMatches}
+          teams={mockTeams}
+          actualPoints={seasonData}
         />
       </main>
     </div>
