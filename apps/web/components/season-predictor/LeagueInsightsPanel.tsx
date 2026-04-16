@@ -35,7 +35,7 @@ export function LeagueInsightsPanel({ data, teams }: LeagueInsightsPanelProps) {
     return recentAvg - earlierAvg
   }
 
-  const rows = teams.filter(t => data[t.id]?.xp > 0).map((t) => {
+  const rows = teams.filter(t => data[t.id]?.xp >= 0 || !data[t.id]).map((t) => {
     const d = data[t.id]
     const volatility = d?.distribution ? getVolatility(d.distribution) : 0
     const xp = d?.xp ?? 0

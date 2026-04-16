@@ -20,7 +20,7 @@ export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
     xp: data[t.id]?.xp ?? 0,
     championProb: data[t.id]?.championProb ?? 0,
     relegationProb: data[t.id]?.relegationProb ?? 0,
-  })).filter(r => r.xp > 0)
+  })).filter(r => r.xp >= 0)
 
   if (rows.length === 0) {
     return (

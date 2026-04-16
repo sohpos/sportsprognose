@@ -193,7 +193,7 @@ export const TeamInsightGrid = memo<TeamInsightGridProps>(({ data, teams, compac
     }
   >
     {teams
-      .filter((t) => data[t.id]?.xp > 0)
+      .filter((t) => data[t.id]?.xp >= 0 || data[t.id]?.xp === undefined)
       .map((t) => (
         <TeamInsightCard key={t.id} team={t} data={data[t.id]} compact={compact} />
       ))}
