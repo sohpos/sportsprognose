@@ -24,3 +24,4 @@ export * from "./utils"
 // EPIC 3 (Simulation) + EPIC 4 (Visuals)
 // ValueTrendChart is already a visual component
 export { ValueTrendChart } from "./ValueTrendChart"
+export * from "./teams"
