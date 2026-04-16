@@ -29,7 +29,7 @@ type SeasonPredictorPageProps = {
 }
 
 export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData }: SeasonPredictorPageProps) {
-  const useDirectData = !!initialData
+  const useDirectData = !!(initialData || actualPoints)
   
   const { data: simulatedData, loading, progress } = useSeasonPredictor(
     useDirectData ? [] : fixtures || [], 
