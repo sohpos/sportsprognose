@@ -10,10 +10,9 @@ import { LeagueInsightsPanel } from "./LeagueInsightsPanel"
 import { ScatterPlotXPvsActual } from "./ScatterPlotXPvsActual"
 
 type SeasonPredictorPageProps = {
-  fixtures: any[]
+  fixtures?: any[]
   teams: { id: string; name: string; logo?: string }[]
   actualPoints?: Record<string, number>
-  // Optional: pass pre-computed data to skip simulation
   initialData?: Record<string, {
     xp: number
     first: number
@@ -30,11 +29,10 @@ type SeasonPredictorPageProps = {
 }
 
 export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData }: SeasonPredictorPageProps) {
-  // If initialData is provided, use it directly (no simulation needed)
   const useDirectData = !!initialData
   
   const { data: simulatedData, loading, progress } = useSeasonPredictor(
-    useDirectData ? [] : fixtures, 
+    useDirectData ? [] : fixtures || [], 
     useDirectData ? [] : teams as any
   )
   
@@ -43,8 +41,8 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
   if (!useDirectData && (loading || !data)) {
     return (
       <div className="space-y-4 p-6">
-        <h1 className="text-2xl font-bold">Season Predictor</h1>
-        <div className="rounded-xl bg-white dark:bg-neutral-900 p-4 shadow">
+        <h1 className="text-2xl font-bold text-white">Season Predictor</h1>
+        <div className="rounded-xl bg-white dark:bg-neutral-900 p-4 shadow-lg">
           <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
             Simulation läuft ({progress}% von 100.000 Iterationen)…
           </p>
@@ -59,19 +57,37 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
     )
   }
 
+  if (!data) {
+    return (
+      <div className="rounded-xl bg-white dark:bg-neutral-900 p-6 shadow-lg text-center text-neutral-500">
+        Keine Daten verfügbar
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8 p-6">
-      <h1 className="text-2xl font-bold">Season Predictor</h1>
-
-      <SeasonXPTable data={data} teams={teams} />
+    <div className="space-y-8">
+      {/* xP Table */}
+      <section>
+        <h2 className="text-xl font-bold text-white mb-4">Expected Points</h2>
+        <SeasonXPTable data={data} teams={teams} />
+      </section>
       
-      <SeasonChances data={data} teams={teams} />
+      {/* Season Chances */}
+      <section>
+        <SeasonChances data={data} teams={teams} />
+      </section>
 
-      <SurpriseIndex data={data as any} teams={teams} />
+      {/* Surprise Index */}
+      <section>
+        <h2 className="text-xl font-bold text-white mb-4">Surprise Index</h2>
+        <SurpriseIndex data={data as any} teams={teams} />
+      </section>
 
+      {/* Position Distribution & Scatter */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Positionsverteilung</h2>
+        <section>
+          <h2 className="text-lg font-bold text-white mb-3">Positionsverteilung</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {teams.slice(0, 6).map((t) => (
               <PositionDistributionChart
@@ -81,10 +97,9 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
               />
             ))}
           </div>
-        </div>
+        </section>
         
-        <div>
-          <h2 className="text-lg font-semibold mb-3">xP vs Actual Points</h2>
+        <section>
           <ScatterPlotXPvsActual 
             teams={teams}
             data={Object.fromEntries(
@@ -98,12 +113,20 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
               ])
             )}
           />
-        </div>
+        </section>
       </div>
 
-      <LeagueInsightsPanel data={data as any} teams={teams} />
+      {/* League Insights */}
+      <section>
+        <h2 className="text-xl font-bold text-white mb-4">Liga Insights</h2>
+        <LeagueInsightsPanel data={data as any} teams={teams} />
+      </section>
 
-      <TeamSummaryGrid data={data} teams={teams} />
+      {/* Team Summary Grid */}
+      <section>
+        <h2 className="text-xl font-bold text-white mb-4">Alle Teams</h2>
+        <TeamSummaryGrid data={data} teams={teams} />
+      </section>
     </div>
   )
 }
