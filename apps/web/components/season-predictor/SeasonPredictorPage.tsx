@@ -27,8 +27,7 @@ export function SeasonPredictorPage({
 
   // ❗ Hook nur ausführen, wenn Simulation nötig ist
   const { data: simulatedData, loading, progress } = useSeasonPredictor(
-    useDirectData ? [] : fixtures || [],
-    useDirectData ? [] : teams
+    useDirectData ? [] : fixtures || []
   );
 
   const data = useDirectData ? initialData : simulatedData;
