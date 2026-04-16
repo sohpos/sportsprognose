@@ -42,7 +42,7 @@ router.get('/:teamId/value-history', async (req, res) => {
         opponentId: String(Math.floor(Math.random() * 50) + 1),
         market,
         probability: Math.round(prob * 100),
-        odds: parseFloat(odds),
+        odds: odds,
         fairOdds: Math.round(fairOdds * 100) / 100,
         edge: Math.round(edge),
         result: result,
