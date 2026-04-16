@@ -29,7 +29,7 @@ export function TeamInsightCard({ team, data, compact = false }: TeamInsightCard
   const actual = data?.actualPoints
   const delta = actual !== undefined ? actual - xp : null
   const luckFactor = xp > 0 && delta !== null ? (delta / xp) * 100 : null
-  const consistency = volatility > 0 ? 1 / volatility : null
+  const consistency = volatility > 0 ? (1 / volatility) : null
 
   const Metric = ({ label, value, positive, negative }: { label: string; value: string; positive?: boolean; negative?: boolean }) => (
     <div className={`flex flex-col ${compact ? 'text-xs' : 'text-sm'}`}>
