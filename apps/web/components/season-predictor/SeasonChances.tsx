@@ -3,7 +3,7 @@
 import { memo } from 'react';
 
 type SeasonChancesProps = {
-  data: Record<string, any>;
+  data: Record<string, any> | null;
   teams: any[];
 };
 
@@ -13,12 +13,13 @@ const formatPct = (prob: number): string => {
 };
 
 export const SeasonChances = memo<SeasonChancesProps>(({ data, teams }) => {
+  if (!data) return null;
   const championship = teams
     .map((t: any) => ({
       id: t.id,
       name: t.name,
       logo: t.logo,
-      prob: data[t.id]?.championProb ?? 0,
+      prob: (data?.[t.id]?.championProb ?? 0) ?? 0,
     }))
     .filter((t: any) => t.prob > 0)
     .sort((a: any, b: any) => b.prob - a.prob);

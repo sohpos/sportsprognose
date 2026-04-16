@@ -13,19 +13,7 @@ type SeasonPredictorPageProps = {
   fixtures?: any[]
   teams: { id: string; name: string; logo?: string }[]
   actualPoints?: Record<string, number>
-  initialData?: Record<string, {
-    xp: number
-    championProb: number
-    relegationProb: number
-    distribution: number[]
-    goalsFor?: number
-    goalsAgainst?: number
-    xG?: number
-    xGA?: number
-    form?: number[]
-    homePoints?: number
-    awayPoints?: number
-  }>
+  initialData?: Record<string, any>
 }
 
 export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData }: SeasonPredictorPageProps) {
@@ -56,26 +44,17 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
       </div>
     )
   }
-
-  
-    return (
-      <div className="rounded-xl bg-white dark:bg-neutral-900 p-6 shadow-lg text-center text-neutral-500">
-        Keine Daten verfügbar
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8">
       {/* xP Table */}
       <section>
         <h2 className="text-xl font-bold text-white mb-4">Expected Points</h2>
-        <SeasonXPTable data={data} teams={teams} />
+        <SeasonXPTable data={data as any} teams={teams} />
       </section>
       
       {/* Season Chances */}
       <section>
-        <SeasonChances data={data} teams={teams} />
+        <SeasonChances data={data as any} teams={teams} />
       </section>
 
       {/* Surprise Index */}
@@ -125,7 +104,7 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
       {/* Team Summary Grid */}
       <section>
         <h2 className="text-xl font-bold text-white mb-4">Alle Teams</h2>
-        <TeamSummaryGrid data={data} teams={teams} />
+        <TeamSummaryGrid data={data as any} teams={teams} />
       </section>
     </div>
   )

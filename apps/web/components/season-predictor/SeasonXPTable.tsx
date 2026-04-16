@@ -4,7 +4,15 @@ type SeasonXPTableProps = {
     championProb: number
     relegationProb: number
     distribution: number[]
-  }>
+    actualPoints?: number
+    goalsFor?: number
+    goalsAgainst?: number
+    xG?: number
+    xGA?: number
+    form?: number[]
+    homePoints?: number
+    awayPoints?: number
+  } | null>
   teams: { id: string; name: string; logo?: string }[]
 }
 
@@ -13,6 +21,7 @@ const formatXP = (value: number): string => value.toFixed(2)
 const formatPercent = (value: number): string => (value / 1000).toFixed(1) + '%'
 
 export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
+  if (!data) return null;
   const rows = teams.map((t) => ({
     id: t.id,
     name: t.name,
