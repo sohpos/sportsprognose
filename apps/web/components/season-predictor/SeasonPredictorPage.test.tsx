@@ -1,3 +1,6 @@
+import React from 'react';
+import React from 'react'
+
 'use client';
 /**
  * Unit Tests: SeasonPredictorPage
