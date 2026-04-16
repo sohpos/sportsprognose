@@ -5,6 +5,7 @@ import matchesRouter from './routes/matches';
 import predictionsRouter from './routes/predictions';
 import formRouter from './routes/form';
 import valueHistoryRouter from './routes/team/valueHistory';
+import apiRouter from './routes/api';
 import seasonPredictorRouter from './routes/season/predictor';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use('/api/matches', matchesRouter);
 app.use('/api/predictions', predictionsRouter);
 app.use('/api/form', formRouter);
 app.use('/api/team', valueHistoryRouter);
+app.use('/api', apiRouter);
 app.use('/api/season', seasonPredictorRouter);
 app.use('/api/leagues', (_req, res) => {
   res.redirect('/api/matches/leagues');

@@ -309,3 +309,87 @@ export async function getHeadToHead(team1Id: string, team2Id: string): Promise<a
     return [];
   }
 }
+
+// EPIC 2 - New API functions
+
+// Get all teams for a league
+export async function getAllTeams(league: string = 'BL1'): Promise<Team[]> {
+  try {
+    const data = await oldbApiGet(`/getteamsbyshortname/${OLDB_LEAGUE_KEYS[league] || league}`);
+    if (data) {
+      return data.map((t: any) => ({
+        id: String(t.teamId),
+        name: t.teamName,
+        shortName: t.teamShortcut,
+        logo: t.teamIconUrl,
+      }));
+    }
+  } catch (e) {
+    console.error('getAllTeams error:', e);
+  }
+  return [];
+}
+
+// Get league table
+export async function getLeagueTable(league: string = 'BL1'): Promise<any[]> {
+  try {
+    const data = await oldbApiGet(`/gettable/bl1/${SEASON_PAST}`);
+    if (data) {
+      return data.map((row: any) => ({
+        position: row.position,
+        teamId: String(row.teamId),
+        teamName: row.teamName,
+        played: row.matches,
+        won: row.wins,
+        drawn: row.draws,
+        lost: row.losses,
+        points: row.points,
+        goalsFor: row.goals,
+        goalsAgainst: row.opponentGoals,
+        goalDiff: row.goalDifference,
+      }));
+    }
+  } catch (e) {
+    console.error('getLeagueTable error:', e);
+  }
+  return [];
+}
+
+// Get team statistics
+export async function getTeamStats(teamId: string): Promise<any> {
+  try {
+    const stats = await getTeamStatsFromOpenligaDB(teamId);
+    const form = await getTeamForm(teamId);
+    return { ...stats, form };
+  } catch (e) {
+    console.error('getTeamStats error:', e);
+    return null;
+  }
+}
+
+// Get team form (last 5 games)
+export async function getTeamForm(teamId: string): Promise<number[]> {
+  try {
+    const data = await oldbApiGet(`/getmatchdata/bl1/${SEASON_PAST}?teamId=${teamId}`);
+    if (data && data.length > 0) {
+      // Sort by date, take last 5
+      const sorted = data
+        .sort((a: any, b: any) => new Date(b.matchDateTime).getTime() - new Date(a.matchDateTime).getTime())
+        .slice(0, 5);
+      
+      return sorted.map((m: any) => {
+        const result = m.matchResults?.find((r: any) => r.resultTypeID === 2);
+        if (!result) return 1; // D
+        const isHome = String(m.team1.teamId) === String(teamId);
+        const goalsFor = isHome ? result.pointsTeam1 : result.pointsTeam2;
+        const goalsAgainst = isHome ? result.pointsTeam2 : result.pointsTeam1;
+        if (goalsFor > goalsAgainst) return 3; // W
+        if (goalsFor === goalsAgainst) return 1; // D
+        return 0; // L
+      });
+    }
+  } catch (e) {
+    console.error('getTeamForm error:', e);
+  }
+  return [1, 1, 1, 1, 1];
+}
