@@ -24,6 +24,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [locale, setLocale] = useState('de');
 
+  // Load locale
   useEffect(() => {
     const saved = localStorage.getItem('sportsprognose_locale');
     if (saved && translations[saved]) setLocale(saved);
@@ -31,35 +32,49 @@ export default function MatchesPage() {
 
   const t = translations[locale] || translations['de'];
 
+  // Load matches + predictions
   useEffect(() => {
     setLoading(true);
+
     const url = selectedLeague
       ? `http://localhost:3002/api/matches?league=${selectedLeague}`
       : 'http://localhost:3002/api/matches';
 
     fetch(url)
-      .then(r => r.json())
-      .then(async data => {
+      .then((r) => r.json())
+      .then(async (data) => {
+        const list: Match[] = data.matches || [];
+
         // Sort by date
-        const sorted = (data.matches || []).sort((a: Match, b: Match) => 
-          new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()
+        const sorted = [...list].sort(
+          (a, b) =>
+            new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()
         );
+
         setMatches(sorted);
-        
-        // Fetch predictions
+
+        // Fetch predictions for each match
         const preds: Record<string, PredictionResult> = {};
-        await Promise.allSettled(
-          sorted.map((m: Match) => 
-            fetch(`http://localhost:3002/api/predictions/${m.id}`).then(r => r.json())
+
+        const results = await Promise.allSettled(
+          sorted.map((m) =>
+            fetch(`http://localhost:3002/api/predictions/${m.id}`)
+              .then((r) => r.json())
+              .catch(() => null)
           )
-        ).then(results => {
-          results.forEach((r, i) => {
-            if (r.status === 'fulfilled' && r.value.prediction) {
-              preds[sorted[i].id] = r.value.prediction;
-            }
-          });
-          setPredictions(preds);
+        );
+
+        results.forEach((res, i) => {
+          if (
+            res.status === 'fulfilled' &&
+            res.value &&
+            res.value.prediction
+          ) {
+            preds[sorted[i].id] = res.value.prediction;
+          }
         });
+
+        setPredictions(preds);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -67,13 +82,22 @@ export default function MatchesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{t.title}</h1>
-        <span className="text-sm text-slate-500">{matches.length} {t.found}</span>
+        <span className="text-sm text-slate-500">
+          {matches.length} {t.found}
+        </span>
       </div>
 
-      <LeagueFilter selected={selectedLeague} onChange={setSelectedLeague} locale={locale} />
+      {/* League Filter */}
+      <LeagueFilter
+        selected={selectedLeague}
+        onChange={setSelectedLeague}
+        locale={locale}
+      />
 
+      {/* Loading Skeleton */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -85,11 +109,18 @@ export default function MatchesPage() {
           ))}
         </div>
       ) : matches.length === 0 ? (
-        <div className="card p-8 text-center text-slate-500">{t.noData}</div>
+        <div className="card p-8 text-center text-slate-500">
+          {t.noData}
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {matches.map(match => (
-            <MatchCard key={match.id} match={match} prediction={predictions[match.id]} locale={locale} />
+          {matches.map((match) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              prediction={predictions[match.id]}
+              locale={locale}
+            />
           ))}
         </div>
       )}
