@@ -52,17 +52,17 @@ function calcGrid(size: number, lvl: number, n: number): string {
 }
 
 export const TeamDNARadar = memo<TeamDNARadarProps>(({ teamDNA, teamName, compact = false }) => {
-  // Safe values + xGA invertieren
   const safeValues = useMemo(() => {
     return RADAR_LABELS.map(({ key }) => {
       const raw = Number(teamDNA[key]) || 0;
-      return key === 'xGA' ? Math.max(0, 100 - raw) : Math.min(Math.max(raw, 0), 100);
+      return key === 'xGA'
+        ? Math.max(0, 100 - raw)
+        : Math.min(Math.max(raw, 0), 100);
     });
   }, [teamDNA]);
 
   const maxStat = Math.max(...safeValues);
   const minStat = Math.min(...safeValues);
-
   const n = RADAR_LABELS.length;
 
   if (compact) {
@@ -185,3 +185,9 @@ export const TeamDNARadar = memo<TeamDNARadarProps>(({ teamDNA, teamName, compac
             📊 Balanced
           </span>
         )}
+      </div>
+    </div>
+  );
+});
+
+TeamDNARadar.displayName = 'TeamDNARadar';

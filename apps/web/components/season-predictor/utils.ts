@@ -1,82 +1,92 @@
 /**
- * Season Predictor - Utility Functions
+ * Season Predictor - Utility Functions (Corrected + Stabilized)
  */
 
 import { TeamData, TeamSurpriseMetrics } from './types'
 
 /**
- * Calculate volatility (standard deviation) from position distribution
+ * Expected position helper
+ */
+const getExpectedPosition = (distribution: number[]): number => {
+  const total = distribution.reduce((a, b) => a + b, 0)
+  if (total === 0) return 0
+
+  return distribution.reduce(
+    (sum, count, pos) => sum + (pos + 1) * (count / total),
+    0
+  )
+}
+
+/**
+ * Calculate volatility (standard deviation)
  */
 export const calculateVolatility = (distribution: number[]): number => {
   const total = distribution.reduce((a, b) => a + b, 0)
   if (total === 0) return 0
 
-  let expectedPos = 0
-  distribution.forEach((count, pos) => {
-    expectedPos += (pos + 1) * (count / total)
-  })
+  const expectedPos = getExpectedPosition(distribution)
 
-  let variance = 0
-  distribution.forEach((count, pos) => {
+  const variance = distribution.reduce((sum, count, pos) => {
     const prob = count / total
-    variance += prob * Math.pow(pos + 1 - expectedPos, 2)
-  })
+    return sum + prob * Math.pow(pos + 1 - expectedPos, 2)
+  }, 0)
 
   return Math.sqrt(variance)
 }
 
 /**
- * Calculate expected position from distribution
+ * Expected position
  */
-export const calculateExpectedPosition = (distribution: number[]): number => {
-  const total = distribution.reduce((a, b) => a + b, 0)
-  if (total === 0) return 0
-
-  let expectedPos = 0
-  distribution.forEach((count, pos) => {
-    expectedPos += (pos + 1) * (count / total)
-  })
-
-  return expectedPos
-}
+export const calculateExpectedPosition = getExpectedPosition
 
 /**
- * Calculate momentum from form array (last 5 matches)
+ * Momentum (last 5 matches)
  */
 export const calculateMomentum = (form?: number[]): number | null => {
   if (!form || form.length < 3) return null
 
-  const recent = form.slice(-3)
-  const earlier = form.slice(-5, -3)
+  const safeForm = form.map((v) => Number(v) || 0)
+
+  const recent = safeForm.slice(-3)
+  const earlier = safeForm.slice(-5, -3)
 
   const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length
-  const earlierAvg = earlier.length > 0
-    ? earlier.reduce((a, b) => a + b, 0) / earlier.length
-    : recentAvg
+  const earlierAvg =
+    earlier.length > 0
+      ? earlier.reduce((a, b) => a + b, 0) / earlier.length
+      : recentAvg
 
   return recentAvg - earlierAvg
 }
 
 /**
- * Calculate all surprise metrics for a team
+ * Surprise Metrics
  */
 export const calculateSurpriseMetrics = (
   teamId: string,
   data: TeamData
 ): TeamSurpriseMetrics => {
   const volatility = calculateVolatility(data.distribution)
-  const xp = data.xp
+  const xp = Number(data.xp) || 0
   const actual = data.actualPoints
   const delta = actual !== undefined ? actual - xp : null
-  const luckFactor = xp > 0 && delta !== null ? (delta / xp) * 100 : null
-  const inverseVol = 1.0 / volatility
-  const consistency = volatility > 0 ? inverseVol : null
-  const xgDelta = (data.goalsFor !== undefined && data.xG !== undefined)
-    ? data.goalsFor - data.xG
-    : null
-  const xgaDelta = (data.goalsAgainst !== undefined && data.xGA !== undefined)
-    ? data.goalsAgainst - data.xGA
-    : null
+
+  const luckFactor =
+    xp > 0 && delta !== null ? (delta / xp) * 100 : null
+
+  const consistency =
+    volatility > 0 ? 1 / volatility : null
+
+  const xgDelta =
+    data.goalsFor !== undefined && data.xG !== undefined
+      ? Number(data.goalsFor) - Number(data.xG)
+      : null
+
+  const xgaDelta =
+    data.goalsAgainst !== undefined && data.xGA !== undefined
+      ? Number(data.goalsAgainst) - Number(data.xGA)
+      : null
+
   const momentum = calculateMomentum(data.form)
 
   return {
@@ -91,44 +101,47 @@ export const calculateSurpriseMetrics = (
 }
 
 /**
- * Convert distribution counts to percentages
+ * Convert distribution to percentages
  */
 export const distributionToPercentages = (
-  distribution: number[],
-  total: number = 100000
+  distribution: number[]
 ): number[] => {
+  const total = distribution.reduce((a, b) => a + b, 0)
+  if (total === 0) return distribution.map(() => 0)
+
   return distribution.map((v) => (v / total) * 100)
 }
 
 /**
- * Get quadrant for scatter plot position
+ * Quadrant (median-based)
  */
 export const getQuadrant = (
   xp: number,
   actual: number,
-  maxVal: number
+  medianXP: number
 ): 'efficient' | 'lucky' | 'unlucky' | 'inefficient' => {
-  if (actual >= xp && xp >= maxVal / 2) return 'efficient'
-  if (actual >= xp && xp < maxVal / 2) return 'lucky'
-  if (actual < xp && xp >= maxVal / 2) return 'unlucky'
+  if (actual >= xp && xp >= medianXP) return 'efficient'
+  if (actual >= xp && xp < medianXP) return 'lucky'
+  if (actual < xp && xp >= medianXP) return 'unlucky'
   return 'inefficient'
 }
 
 /**
- * Get color for quadrant
+ * Quadrant color
  */
-export const getQuadrantColor = (quadrant: string): string => {
+export const getQuadrantColor = (
+  quadrant: 'efficient' | 'lucky' | 'unlucky' | 'inefficient'
+): string => {
   switch (quadrant) {
-    case 'efficient': return '#16a34a' // green
-    case 'lucky': return '#2563eb' // blue
-    case 'unlucky': return '#ea580c' // orange
-    case 'inefficient': return '#dc2626' // red
-    default: return '#6b7280' // gray
+    case 'efficient': return '#16a34a'
+    case 'lucky': return '#2563eb'
+    case 'unlucky': return '#ea580c'
+    case 'inefficient': return '#dc2626'
   }
 }
 
 /**
- * Scale value for chart positioning
+ * Scale value for charts
  */
 export const scaleValue = (
   value: number,
@@ -136,18 +149,23 @@ export const scaleValue = (
   range: number,
   offset: number
 ): number => {
+  if (maxValue <= 0) return offset
   return (value / maxValue) * (range - offset * 2) + offset
 }
 
 /**
- * Format percentage for display
+ * Format percentage
  */
-export const formatPercentage = (value: number, decimals: number = 1): string => {
-  return `${value.toFixed(decimals)}%`
+export const formatPercentage = (
+  value: number,
+  decimals: number = 1
+): string => {
+  const safe = Math.min(Math.max(value, 0), 100)
+  return `${safe.toFixed(decimals)}%`
 }
 
 /**
- * Format points delta with sign
+ * Format delta
  */
 export const formatDelta = (value: number): string => {
   const sign = value >= 0 ? '+' : ''
