@@ -19,11 +19,12 @@ type HomeAwaySplitProps = {
 };
 
 export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false }) => {
-  // 🔥 Alle Werte sicher casten
+  // Safe casting
   const homePoints = Number(stats.homePoints ?? 0);
   const homeGames = Number(stats.homeGames ?? 0);
   const awayPoints = Number(stats.awayPoints ?? 0);
   const awayGames = Number(stats.awayGames ?? 0);
+
   const homeGoalsFor = Number(stats.homeGoalsFor ?? 0);
   const homeGoalsAgainst = Number(stats.homeGoalsAgainst ?? 0);
   const awayGoalsFor = Number(stats.awayGoalsFor ?? 0);
@@ -42,13 +43,21 @@ export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false 
   const homeGoalDiff = homeGoalsFor - homeGoalsAgainst;
   const awayGoalDiff = awayGoalsFor - awayGoalsAgainst;
 
+  // Dynamic scaling for bars
+  const maxPoints = Math.max(homePoints, awayPoints, 1);
+  const scale = (v: number) => Math.min((v / maxPoints) * 100, 100);
+
   if (compact) {
     return (
       <div className="flex gap-4 text-sm">
         <span className="text-neutral-500">🏠</span>
-        <span className="text-green-400">{homePoints}pts</span>
+        <span className={homePoints >= 0 ? 'text-green-400' : 'text-red-400'}>
+          {homePoints}pts
+        </span>
         <span className="text-neutral-600">/</span>
-        <span className="text-blue-400">{awayPoints}pts</span>
+        <span className={awayPoints >= 0 ? 'text-blue-400' : 'text-red-400'}>
+          {awayPoints}pts
+        </span>
         <span className="text-neutral-500">✈️</span>
       </div>
     );
@@ -68,6 +77,7 @@ export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false 
           </div>
 
           <div className="space-y-2">
+            {/* Points */}
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-neutral-400">Points</span>
@@ -75,17 +85,19 @@ export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false 
               </div>
               <div className="h-2 bg-neutral-800 rounded-full">
                 <div
-                  className="h-full bg-green-600 rounded-full"
-                  style={{ width: `${(homePoints / 51) * 100}%` }}
+                  className="h-full bg-green-600 rounded-full transition-all duration-500"
+                  style={{ width: `${scale(homePoints)}%` }}
                 />
               </div>
             </div>
 
+            {/* PPG */}
             <div className="flex justify-between text-xs">
               <span className="text-neutral-400">PPG</span>
               <span className="font-mono text-neutral-300">{homePPG.toFixed(2)}</span>
             </div>
 
+            {/* Goal Diff */}
             <div className="flex justify-between text-xs">
               <span className="text-neutral-400">Goal Diff</span>
               <span className={`font-mono ${homeGoalDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -105,6 +117,7 @@ export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false 
           </div>
 
           <div className="space-y-2">
+            {/* Points */}
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-neutral-400">Points</span>
@@ -112,17 +125,19 @@ export const HomeAwaySplit = memo<HomeAwaySplitProps>(({ stats, compact = false 
               </div>
               <div className="h-2 bg-neutral-800 rounded-full">
                 <div
-                  className="h-full bg-blue-600 rounded-full"
-                  style={{ width: `${(awayPoints / 51) * 100}%` }}
+                  className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                  style={{ width: `${scale(awayPoints)}%` }}
                 />
               </div>
             </div>
 
+            {/* PPG */}
             <div className="flex justify-between text-xs">
               <span className="text-neutral-400">PPG</span>
               <span className="font-mono text-neutral-300">{awayPPG.toFixed(2)}</span>
             </div>
 
+            {/* Goal Diff */}
             <div className="flex justify-between text-xs">
               <span className="text-neutral-400">Goal Diff</span>
               <span className={`font-mono ${awayGoalDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>
