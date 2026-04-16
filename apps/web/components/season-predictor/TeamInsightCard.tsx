@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo } from 'react';
 
 type Team = {
   id: string;
@@ -26,7 +26,6 @@ type MetricProps = {
   negative?: boolean;
 };
 
-// Memoized Metric component
 const Metric = memo<MetricProps>(({ label, value, positive, negative }) => (
   <div className="flex flex-col">
     <span className="text-[10px] uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
@@ -53,41 +52,34 @@ type TeamInsightCardProps = {
   compact?: boolean;
 };
 
-// Main card component with memo
 export const TeamInsightCard = memo<TeamInsightCardProps>(({ team, data, compact = false }) => {
-  // useMemo for expensive calculations
   const volatility = useMemo(() => {
-    if (!data?.distribution) return 0;
-    const dist = data.distribution;
+    const dist = data?.distribution;
+    if (!dist || dist.length === 0) return 0;
+
     const total = dist.reduce((a, b) => a + b, 0);
     if (total === 0) return 0;
-    
+
     const mean = dist.reduce((s, c, i) => s + c * (i + 1), 0) / total;
+
     const variance = dist.reduce((sum, count, pos) => {
       const prob = count / total;
       return sum + prob * Math.pow(pos + 1 - mean, 2);
     }, 0);
-    
+
     return Math.sqrt(variance);
   }, [data?.distribution]);
 
   const xp = data?.xp ?? 0;
-  const actual = data?.actualPoints;
-  const delta = actual !== undefined ? actual - xp : null;
-  
+  const actual = data?.actualPoints ?? null;
+  const delta = actual !== null ? actual - xp : null;
+
   const luckFactor = useMemo(() => {
     if (xp <= 0 || delta === null) return null;
     return (delta / xp) * 100;
   }, [xp, delta]);
 
-  const inverseVol = useMemo(() => 1.0 / volatility, [volatility]);
-  const consistency = volatility > 0 ? inverseVol : null;
-
-  // Stable Metric render with useCallback
-  const renderMetric = useCallback(
-    (props: MetricProps) => <Metric {...props} />,
-    []
-  );
+  const consistency = volatility > 0 ? 1 / volatility : null;
 
   if (compact) {
     return (
@@ -99,11 +91,13 @@ export const TeamInsightCard = memo<TeamInsightCardProps>(({ team, data, compact
           <span className="text-neutral-400">
             xP: <span className="font-mono font-medium text-white">{xp.toFixed(1)}</span>
           </span>
+
           {delta !== null && (
             <span className={delta >= 0 ? 'text-green-400' : 'text-red-400'}>
               Δ: {delta >= 0 ? '+' : ''}{delta.toFixed(1)}
             </span>
           )}
+
           {luckFactor !== null && (
             <span className={luckFactor >= 0 ? 'text-green-400' : 'text-red-400'}>
               Luck: {luckFactor >= 0 ? '+' : ''}{luckFactor.toFixed(0)}%
@@ -125,6 +119,7 @@ export const TeamInsightCard = memo<TeamInsightCardProps>(({ team, data, compact
             {team.name}
           </h3>
         </div>
+
         {actual !== null && (
           <span
             className={`text-xl font-bold ${
@@ -141,34 +136,39 @@ export const TeamInsightCard = memo<TeamInsightCardProps>(({ team, data, compact
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-3">
-          {renderMetric({ label: 'Expected Points', value: xp.toFixed(1) })}
-          {delta !== null &&
-            renderMetric({
-              label: 'Delta',
-              value: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`,
-              positive: delta >= 0,
-              negative: delta < 0,
-            })}
-          {luckFactor !== null &&
-            renderMetric({
-              label: 'Luck Factor',
-              value: `${luckFactor >= 0 ? '+' : ''}${luckFactor.toFixed(0)}%`,
-              positive: luckFactor >= 0,
-              negative: luckFactor < 0,
-            })}
+          <Metric label="Expected Points" value={xp.toFixed(1)} />
+
+          {delta !== null && (
+            <Metric
+              label="Delta"
+              value={`${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`}
+              positive={delta >= 0}
+              negative={delta < 0}
+            />
+          )}
+
+          {luckFactor !== null && (
+            <Metric
+              label="Luck Factor"
+              value={`${luckFactor >= 0 ? '+' : ''}${luckFactor.toFixed(0)}%`}
+              positive={luckFactor >= 0}
+              negative={luckFactor < 0}
+            />
+          )}
         </div>
+
         <div className="space-y-3">
-          {consistency !== null &&
-            renderMetric({
-              label: 'Consistency',
-              value: consistency.toFixed(2),
-              positive: consistency > 0.5,
-            })}
-          {volatility > 0 &&
-            renderMetric({
-              label: 'Volatility',
-              value: `±${volatility.toFixed(1)}`,
-            })}
+          {consistency !== null && (
+            <Metric
+              label="Consistency"
+              value={consistency.toFixed(2)}
+              positive={consistency > 0.5}
+            />
+          )}
+
+          {volatility > 0 && (
+            <Metric label="Volatility" value={`±${volatility.toFixed(1)}`} />
+          )}
         </div>
       </div>
     </div>
@@ -177,7 +177,6 @@ export const TeamInsightCard = memo<TeamInsightCardProps>(({ team, data, compact
 
 TeamInsightCard.displayName = 'TeamInsightCard';
 
-// Grid component
 type TeamInsightGridProps = {
   data: Record<string, TeamData>;
   teams: Team[];
@@ -193,7 +192,7 @@ export const TeamInsightGrid = memo<TeamInsightGridProps>(({ data, teams, compac
     }
   >
     {teams
-      .filter((t) => data[t.id]?.xp >= 0 || data[t.id]?.xp === undefined)
+      .filter((t) => data[t.id]) // FIX: only teams with data
       .map((t) => (
         <TeamInsightCard key={t.id} team={t} data={data[t.id]} compact={compact} />
       ))}
