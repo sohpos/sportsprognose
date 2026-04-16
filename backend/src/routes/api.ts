@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getLeagueTable, getTeamStats, getTeamForm, getAllTeams } from '../../services/footballDataApi';
+import { getLeagueTable, getTeamStats, getTeamForm, getAllTeams } from '../services/footballDataApi';
 
 const router = Router();
 
