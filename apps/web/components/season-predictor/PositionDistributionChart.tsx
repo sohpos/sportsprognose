@@ -11,8 +11,8 @@ export function PositionDistributionChart({
   const percentages = distribution.map((v) => (v / total) * 100)
   const max = Math.max(...percentages.filter(p => p > 0))
 
-  const colorScale = (pct: number) => {
-    if (max === 0) return 'rgba(59, 130, 246, 0.1)'
+  const colorScale = (pct: number): string => {
+    if (max === 0 || pct < 0.5) return 'rgba(59, 130, 246, 0.1)'
     const intensity = pct / max
     const start = [219, 234, 254]
     const end = [30, 64, 175]
@@ -23,23 +23,32 @@ export function PositionDistributionChart({
   }
 
   return (
-    <div className="rounded-lg bg-white dark:bg-neutral-900 p-3 shadow-sm text-sm">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="rounded-lg bg-white dark:bg-neutral-900 p-3 shadow-lg hover:shadow-xl transition-shadow text-sm">
+      {/* Header with logo */}
+      <div className="flex items-center gap-1.5 mb-3">
         {team.logo && (
           <img src={team.logo} alt="" className="w-4 h-4 rounded-sm object-contain" />
         )}
-        <h3 className="font-medium text-neutral-800 dark:text-neutral-200 truncate">{team.name}</h3>
+        <h3 className="font-semibold text-neutral-800 dark:text-neutral-200 truncate">
+          {team.name}
+        </h3>
       </div>
 
-      <div className="space-y-1 max-h-48 overflow-y-auto pr-2">
+      {/* Distribution bars */}
+      <div className="space-y-1 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
         {percentages.map((pct, i) => {
-          if (pct < 0.5) return null // Hide negligible probabilities
+          if (pct < 0.5) return null // Hide negligible
           return (
-            <div key={i} className="flex items-center gap-2 group cursor-default">
-              <span className="w-5 text-xs text-neutral-400 dark:text-neutral-500 text-right">
+            <div 
+              key={i} 
+              className="flex items-center gap-2 group cursor-default"
+            >
+              {/* Position number */}
+              <span className="w-5 text-xs text-neutral-400 font-medium text-right">
                 {i + 1}.
               </span>
 
+              {/* Bar */}
               <div className="flex-1 h-4 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                 <div
                   className="h-full rounded transition-all group-hover:opacity-80"
@@ -50,7 +59,8 @@ export function PositionDistributionChart({
                 />
               </div>
 
-              <span className="w-12 text-xs text-right font-mono text-neutral-600 dark:text-neutral-400">
+              {/* Percentage */}
+              <span className="w-12 text-xs text-right font-mono text-neutral-600 dark:text-neutral-400 font-medium">
                 {pct.toFixed(1)}%
               </span>
             </div>

@@ -17,9 +17,19 @@ type TeamSummaryGridProps = {
 }
 
 export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
+  const rows = teams.filter(t => data[t.id]?.xp > 0)
+  
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl bg-white dark:bg-neutral-900 p-6 shadow text-center text-neutral-500">
+        Keine Daten verfügbar
+      </div>
+    )
+  }
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-      {teams.map((t) => {
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      {rows.map((t) => {
         const d = data[t.id]
         if (!d) return null
         
@@ -28,27 +38,31 @@ export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
         return (
           <div
             key={t.id}
-            className="rounded-lg bg-white dark:bg-neutral-900 p-3 shadow-sm text-xs hover:shadow-md transition-shadow"
+            className="rounded-lg bg-white dark:bg-neutral-900 p-3 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
           >
-            <div className="flex items-center gap-1.5 mb-2">
+            {/* Team header with logo */}
+            <div className="flex items-center gap-1.5 mb-2 min-w-0">
               {t.logo && (
-                <img src={t.logo} alt="" className="w-4 h-4 rounded-sm object-contain" />
+                <img src={t.logo} alt="" className="w-4 h-4 rounded-sm object-contain flex-shrink-0" />
               )}
-              <h3 className="font-medium text-neutral-800 dark:text-neutral-200 truncate">{t.name}</h3>
+              <h3 className="font-semibold text-sm text-neutral-800 dark:text-neutral-200 truncate">
+                {t.name}
+              </h3>
             </div>
             
-            <div className="space-y-1">
+            {/* Stats */}
+            <div className="space-y-1 text-xs">
               <p className="text-neutral-500 dark:text-neutral-400">
-                xP: <span className="font-mono text-neutral-700 dark:text-neutral-300">{d.xp.toFixed(1)}</span>
+                xP: <span className="font-mono text-neutral-700 dark:text-neutral-300 font-medium">{d.xp.toFixed(1)}</span>
               </p>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Meister: <span className="font-mono text-green-600 dark:text-green-400">{(d.first / 1000).toFixed(1)}%</span>
+                Meister: <span className="font-mono text-green-600 dark:text-green-400 font-medium">{(d.first / 1000).toFixed(1)}%</span>
               </p>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Abstieg: <span className="font-mono text-red-500 dark:text-red-400">{(d.relegation / 1000).toFixed(1)}%</span>
+                Abstieg: <span className="font-mono text-red-500 dark:text-red-400 font-medium">{(d.relegation / 1000).toFixed(1)}%</span>
               </p>
               {delta !== null && (
-                <p className={`font-mono ${delta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`font-mono font-medium ${delta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   Δ {delta >= 0 ? '+' : ''}{delta.toFixed(1)}
                 </p>
               )}
