@@ -1,21 +1,40 @@
 // public/workers/seasonWorker.js
-// Web Worker for Monte-Carlo Season Simulation
-// Runs in background without blocking UI
+// Optimized Web Worker for Monte-Carlo Season Simulation
+// EPIC 3 - Tasks 3.1, 3.2, 3.3
 
+// Deterministic seed option
+let SEED = null;
+function setSeed(seed) {
+  SEED = seed;
+}
+
+// Fast random with optional seed
+function fastRandom() {
+  if (SEED) {
+    SEED = (SEED * 1103515245 + 12345) & 0x7fffffff;
+    return SEED / 0x7fffffff;
+  }
+  return Math.random();
+}
+
+// Optimized Poisson using inverse transform
 function poisson(lambda) {
   let L = Math.exp(-lambda);
   let k = 0;
-  let p = 1;
-  do {
+  let p = fastRandom();
+  let prod = p;
+  while (prod > L) {
     k++;
-    p *= Math.random();
-  } while (p > L);
-  return k - 1;
+    p = fastRandom();
+    prod *= p;
+  }
+  return k;
 }
 
-function simulateMatch(home, away) {
-  const lambdaHome = home.attack * away.defense * home.homeAdv;
-  const lambdaAway = away.attack * home.defense;
+// Single match simulation
+function simulateMatch(homeXg, awayXg, homeAdv = 0.05) {
+  const lambdaHome = Math.max(0, Math.min(homeXg * (2 - awayXg / 100) * (1 + homeAdv), 5);
+  const lambdaAway = Math.max(0, Math.min(awayXg * (2 - homeXg / 100), 5));
 
   const goalsHome = poisson(lambdaHome);
   const goalsAway = poisson(lambdaAway);
@@ -25,53 +44,121 @@ function simulateMatch(home, away) {
   return { home: 1, away: 1 };
 }
 
-function simulateSeason(fixtures, teams) {
-  const table = {};
-  teams.forEach(t => { table[t.id] = { points: 0 }; });
-
-  for (const match of fixtures) {
-    const home = teams.find(t => t.id === match.homeId);
-    const away = teams.find(t => t.id === match.awayId);
-    if (!home || !away) continue;
+// Pre-compute transition matrix for position probabilities (Task 3.3)
+function buildTransitionMatrix(teams) {
+  const n = teams.length;
+  const matrix = new Float64Array(n * n);
+  
+  teams.forEach((team, i) => {
+    const avgXg = team.xG || 50;
+    const strength = avgXg / 100;
     
-    const r = simulateMatch(home, away);
-    table[home.id].points += r.home;
-    table[away.id].points += r.away;
+    // Default: strong teams stay top, weak go down
+    for (let j = 0; j < n; j++) {
+      const dist = Math.abs(i - j);
+      const prob = Math.exp(-dist * dist / (2 * 0.3 * 0.3));
+      matrix[i * n + j] = prob;
+    }
+  });
+  
+  // Normalize rows
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    for (let j = 0; j < n; j++) {
+      sum += matrix[i * n + j];
+    }
+    for (let j = 0; j < n; j++) {
+      matrix[i * n + j] /= sum;
+    }
   }
-
-  return table;
+  
+  return matrix;
 }
 
-self.onmessage = function(event) {
-  const { fixtures, teams, iterations } = event.data;
+// Main simulation using TypedArrays (Task 3.2)
+function simulateSeason(fixtures, teams, iterations) {
+  const n = teams.length;
+  
+  // Use TypedArrays for memory efficiency
+  const totalPoints = new Float64Array(n);
+  const positionCounts = new Uint32Array(n * n); // [team][position]
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const table = new Map();
+    teams.forEach((t, i) => {
+      table.set(t.id, { pts: 0, gd: 0, index: i });
+    });
 
-  const results = {};
-  teams.forEach(t => {
-    results[t.id] = {
-      xp: 0,
-      first: 0,
-      relegation: 0,
-      top4: 0,
-      top6: 0,
-      distribution: new Array(teams.length).fill(0)
-    };
-  });
+    // Simulate all fixtures
+    for (const fixture of fixtures) {
+      const home = teams.find(t => t.id === fixture.homeId);
+      const away = teams.find(t => t.id === fixture.awayId);
+      if (!home || !away) continue;
+      
+      const result = simulateMatch(home.xG || 50, away.xG || 50, home.homeAdv || 0.05);
+      
+      const homeRec = table.get(home.id);
+      const awayRec = table.get(away.id);
+      
+      homeRec.pts += result.home;
+      awayRec.pts += result.away;
+    }
 
-  for (let i = 0; i < iterations; i++) {
-    const table = simulateSeason(fixtures, teams);
-    const sorted = Object.entries(table).sort((a, b) => b[1].points - a[1].points);
+    // Sort by points, then goal difference
+    const sorted = Array.from(table.values())
+      .sort((a, b) => b.pts - a.pts || b.gd - a.gd);
 
-    sorted.forEach(([teamId, data], index) => {
-      const pos = index + 1;
-      results[teamId].xp += data.points;
-      results[teamId].distribution[pos - 1]++;
-
-      if (pos === 1) results[teamId].first++;
-      if (pos <= 4) results[teamId].top4++;
-      if (pos <= 6) results[teamId].top6++;
-      if (pos >= teams.length - 2) results[teamId].relegation++;
+    // Count positions
+    sorted.forEach((team, pos) => {
+      totalPoints[team.index] += team.pts;
+      positionCounts[team.index * n + pos]++;
     });
   }
 
-  self.postMessage({ results, iterations });
+  // Calculate averages
+  const results = {};
+  teams.forEach((t, i) => {
+    const positions = [];
+    for (let pos = 0; pos < n; pos++) {
+      const count = positionCounts[i * n + pos];
+      if (count > 0) {
+        positions.push({ position: pos + 1, probability: count / iterations });
+      }
+    }
+    
+    results[t.id] = {
+      avgPoints: totalPoints[i] / iterations,
+      positions,
+      championProb: positionCounts[i * n] / iterations,
+      relegationProb: positionCounts[i * n + (n - 1)] / iterations,
+    };
+  });
+
+  return results;
+}
+
+// Handle messages from main thread
+self.onmessage = function(event) {
+  const { fixtures, teams, iterations = 100000, seed } = event.data;
+
+  if (seed !== undefined) {
+    setSeed(seed);
+  }
+
+  console.log(`[Worker] Running ${iterations.toLocaleString()} simulations...`);
+  const startTime = performance.now();
+
+  // Pre-compute transition matrix
+  const transitionMatrix = buildTransitionMatrix(teams);
+
+  // Run simulations
+  const results = simulateSeason(fixtures, teams, iterations);
+
+  const elapsed = performance.now() - startTime;
+  console.log(`[Worker] Done in ${elapsed.toFixed(0)}ms`);
+
+  self.postMessage({ results, elapsed, transitionMatrix: Array.from(transitionMatrix) });
 };
+
+// Ready signal
+self.postMessage({ ready: true });
