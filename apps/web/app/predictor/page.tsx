@@ -3,7 +3,7 @@ import { SeasonPredictorPage } from '@/components/season-predictor';
 import { generateSeasonData, generateMatchData } from './mockData';
 import { BUNDESLIGA_TEAMS } from '@/components/season-predictor/teams';
 
-// Transform teams to correct format
+// Transform teams to correct format for component
 const mockTeams = BUNDESLIGA_TEAMS.map(t => ({
   id: t.id,
   name: t.name,
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default function SeasonPredictorDashboard() {
+  // Generate deterministic mock data (runs server-side)
   const seasonData = generateSeasonData();
   const mockMatches = generateMatchData();
   
