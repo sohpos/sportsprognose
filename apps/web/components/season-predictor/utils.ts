@@ -69,7 +69,7 @@ export const calculateSurpriseMetrics = (
   const actual = data.actualPoints
   const delta = actual !== undefined ? actual - xp : null
   const luckFactor = xp > 0 && delta !== null ? (delta / xp) * 100 : null
-  const consistency = volatility > 0 ? 1 / volatility : null
+  const consistency = volatility > 0 ? (1 / volatility) : null
   const xgDelta = (data.goalsFor !== undefined && data.xG !== undefined)
     ? data.goalsFor - data.xG
     : null

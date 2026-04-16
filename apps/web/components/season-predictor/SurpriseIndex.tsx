@@ -42,7 +42,7 @@ export function SurpriseIndex({ data, teams }: SurpriseIndexProps) {
     const actual = d?.actualPoints
     const delta = actual !== undefined ? actual - xp : null
     const luckFactor = xp > 0 && delta !== null ? (delta / xp) * 100 : null
-    const consistency = volatility > 0 ? 1 / volatility : null
+    const consistency = volatility > 0 ? (1 / volatility) : null
     const xgDelta = (d?.goalsFor !== undefined && d?.xG !== undefined) ? d.goalsFor - d.xG : null
     const momentum = d?.form ? getMomentum(d.form) : null
     return { id: t.id, name: t.name, logo: t.logo, delta, luckFactor, consistency, xgDelta, momentum }
