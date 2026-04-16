@@ -1,84 +1,67 @@
-import { Request, Response } from 'express';
+// backend/src/services/cache.ts
+// Redis-free caching layer with fallback to in-memory
 
-// Simple in-memory cache with TTL
-interface CacheEntry {
-  data: any;
+interface CacheEntry<T> {
+  data: T;
   timestamp: number;
+  expiresAt: number;
 }
 
-class DataCache {
-  private cache = new Map<string, CacheEntry>();
-  private ttl: number;
+class CacheService<T = any> {
+  private store = new Map<string, CacheEntry<T>>();
+  private defaultTTL = 15 * 60 * 1000; // 15 minutes
 
-  constructor(ttlMinutes: number = 15) {
-    this.ttl = ttlMinutes * 60 * 1000;
-  }
-
-  get(key: string): any | null {
-    const entry = this.cache.get(key);
-    if (entry && Date.now() - entry.timestamp < this.ttl) {
-      return entry.data;
+  get(key: string): T | null {
+    const entry = this.store.get(key);
+    if (!entry) return null;
+    
+    // Check expiration
+    if (Date.now() > entry.expiresAt) {
+      this.store.delete(key);
+      return null;
     }
-    this.cache.delete(key);
-    return null;
+    
+    return entry.data;
   }
 
-  set(key: string, data: any): void {
-    this.cache.set(key, { data, timestamp: Date.now() });
+  set(key: string, data: T, ttlMs?: number): void {
+    const ttl = ttlMs || this.defaultTTL;
+    this.store.set(key, {
+      data,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + ttl,
+    });
   }
 
-  invalidate(key?: string): void {
-    if (key) {
-      this.cache.delete(key);
-    } else {
-      this.cache.clear();
+  invalidate(key: string): void {
+    this.store.delete(key);
+  }
+
+  invalidatePattern(pattern: string): void {
+    for (const key of this.store.keys()) {
+      if (key.includes(pattern)) {
+        this.store.delete(key);
+      }
     }
+  }
+
+  clear(): void {
+    this.store.clear();
   }
 
   getStats(): { size: number; keys: string[] } {
     return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys()),
+      size: this.store.size,
+      keys: Array.from(this.store.keys()),
     };
   }
 }
 
-// Default 15-minute cache
-const cache = new DataCache(15);
+// Pre-computed data cache (longer TTL)
+export const precomputeCache = new CacheService(60 * 60 * 1000); // 1 hour
 
-// Cron job storage (for in-process scheduling)
-let cronJobInterval: NodeJS.Timeout | null = null;
+// API response cache (shorter TTL)
+export const apiCache = new CacheService(15 * 60 * 1000); // 15 minutes
 
-export { cache, DataCache, cronJobInterval };
-
-// Health check endpoint for cache
-export function handleCacheStats(_req: Request, res: Response): void {
-  res.json(cache.getStats());
-}
-
-// Manual cache invalidation endpoint
-export function handleCacheInvalidate(_req: Request, res: Response): void {
-  cache.invalidate();
-  res.json({ message: 'Cache invalidated' });
-}
-
-// Setup cron job (runs daily)
-export function setupDailyCron(fetchFn: () => Promise<void>): void {
-  // Clear any existing interval
-  if (cronJobInterval) {
-    clearInterval(cronJobInterval);
-  }
-
-  // Run every 24 hours
-  cronJobInterval = setInterval(async () => {
-    try {
-      console.log('[CRON] Starting daily data fetch...');
-      await fetchFn();
-      console.log('[CRON] Daily data fetch complete');
-    } catch (error) {
-      console.error('[CRON] Error:', error);
-    }
-  }, 24 * 60 * 60 * 1000);
-
-  console.log('[CRON] Daily cron job scheduled (24h)');
-}
+// Score matrix cache (very long TTL - changes rarely)
+export const scoreMatrixCache = new CacheService(6 * 60 * 60 * 1000); // 6 hours
