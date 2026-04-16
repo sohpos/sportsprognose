@@ -11,11 +11,12 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
       id: t.id,
       name: t.name,
       logo: t.logo,
-      xp: Number(data[t.id]?.xp ?? 0),
-      actual: Number(data[t.id]?.actualPoints ?? 0),
-      surprise: Number(data[t.id]?.surprise ?? 0),
+      xp: Number(data[t.id]?.xp ?? 0) || 0,
+      actual: Number(data[t.id]?.actualPoints ?? 0) || 0,
+      surprise: Number(data[t.id]?.surprise ?? 0) || 0,
     }))
-    .filter((p) => p.xp > 0 && p.actual > 0);
+    // FIX: allow 0 values
+    .filter((p) => p.xp >= 0 && p.actual >= 0);
 
   if (points.length === 0) {
     return (
@@ -28,7 +29,11 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
     );
   }
 
-  const maxVal = Math.max(...points.map((p) => Math.max(p.xp, p.actual)));
+  // FIX: safe maxVal
+  const maxVal = Math.max(
+    1,
+    ...points.map((p) => Math.max(p.xp, p.actual))
+  );
 
   const size = 260;
   const padding = 32;
@@ -39,11 +44,9 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
   const scaleY = (v: number) =>
     size - padding - (v / maxVal) * (size - padding * 2);
 
-  // Median-basierte Quadrantenlogik (stabiler als maxVal/2)
-  const medianXP =
-    points
-      .map((p) => p.xp)
-      .sort((a, b) => a - b)[Math.floor(points.length / 2)];
+  // FIX: median AFTER early return
+  const sortedXP = points.map((p) => p.xp).sort((a, b) => a - b);
+  const medianXP = sortedXP[Math.floor(sortedXP.length / 2)] ?? 0;
 
   const getQuadrant = (xp: number, actual: number): string => {
     if (actual >= xp && xp >= medianXP) return 'efficient';
@@ -75,7 +78,7 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
 
       <div className="flex justify-center">
         <svg width={size} height={size} className="overflow-visible">
-          {/* Grid lines */}
+          {/* Grid */}
           {[0.25, 0.5, 0.75].map((pct) => (
             <g key={pct}>
               <line
@@ -115,7 +118,7 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
             strokeWidth="1"
           />
 
-          {/* Axis labels */}
+          {/* Labels */}
           <text
             x={size - padding}
             y={size - 8}
@@ -149,7 +152,6 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
 
             return (
               <g key={p.id}>
-                {/* Glow */}
                 <circle
                   cx={scaleX(p.xp)}
                   cy={scaleY(p.actual)}
@@ -158,7 +160,6 @@ export function ScatterPlotXPvsActual({ teams, data }: ScatterPlotProps) {
                   opacity="0.15"
                 />
 
-                {/* Main point */}
                 <circle
                   cx={scaleX(p.xp)}
                   cy={scaleY(p.actual)}
@@ -174,7 +175,6 @@ Actual: ${p.actual}
                   </title>
                 </circle>
 
-                {/* Label for important teams */}
                 {(p.xp > 65 || Math.abs(p.surprise) > 10) && (
                   <text
                     x={scaleX(p.xp) + 8}
