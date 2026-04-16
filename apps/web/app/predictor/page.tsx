@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   description: 'Monte Carlo Simulation für die Bundesliga',
 };
 
+export const dynamic = "force-dynamic"
 export default function SeasonPredictorDashboard() {
   // Generate deterministic mock data (runs server-side)
   const seasonData = generateSeasonData();

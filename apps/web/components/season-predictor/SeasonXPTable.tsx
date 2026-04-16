@@ -17,7 +17,7 @@ type SeasonXPTableProps = {
 }
 
 // Utility function for formatting
-const formatXP = (value: number): string => value.toFixed(2)
+const formatXP = (value: any): string => (typeof value === "number" ? value : 0).toFixed(2)
 const formatPercent = (value: number): string => (value / 1000).toFixed(1) + '%'
 
 export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
