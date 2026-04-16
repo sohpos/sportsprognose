@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import '../globals.css';
-import NavBar from '@/components/NavBar';
 import { SeasonPredictorPage } from '@/components/season-predictor';
 
 const mockTeams = [
@@ -88,7 +87,6 @@ export default function SeasonPredictorDashboard() {
   
   return (
     <div className="min-h-screen bg-neutral-950">
-      <NavBar />
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Page Header */}
         <div className="mb-8">
