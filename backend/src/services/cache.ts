@@ -1,5 +1,5 @@
 // backend/src/services/cache.ts
-// Redis-free caching layer with fallback to in-memory
+// Simple in-memory cache with TTL support
 
 interface CacheEntry<T> {
   data: T;
@@ -9,13 +9,14 @@ interface CacheEntry<T> {
 
 class CacheService<T = any> {
   private store = new Map<string, CacheEntry<T>>();
-  private defaultTTL = 15 * 60 * 1000; // 15 minutes
+  private defaultTTL = 15 * 60 * 1000;
+
+  constructor(private ttlMs?: number) {}
 
   get(key: string): T | null {
     const entry = this.store.get(key);
     if (!entry) return null;
     
-    // Check expiration
     if (Date.now() > entry.expiresAt) {
       this.store.delete(key);
       return null;
@@ -25,7 +26,7 @@ class CacheService<T = any> {
   }
 
   set(key: string, data: T, ttlMs?: number): void {
-    const ttl = ttlMs || this.defaultTTL;
+    const ttl = ttlMs || this.ttlMs || this.defaultTTL;
     this.store.set(key, {
       data,
       timestamp: Date.now(),
@@ -37,31 +38,16 @@ class CacheService<T = any> {
     this.store.delete(key);
   }
 
-  invalidatePattern(pattern: string): void {
-    for (const key of this.store.keys()) {
-      if (key.includes(pattern)) {
-        this.store.delete(key);
-      }
-    }
-  }
-
   clear(): void {
     this.store.clear();
-  }
-
-  getStats(): { size: number; keys: string[] } {
-    return {
-      size: this.store.size,
-      keys: Array.from(this.store.keys()),
-    };
   }
 }
 
 // Pre-computed data cache (longer TTL)
-export const precomputeCache = new CacheService(60 * 60 * 1000); // 1 hour
+export const precomputeCache = new CacheService<any>(60 * 60 * 1000);
 
 // API response cache (shorter TTL)
-export const apiCache = new CacheService(15 * 60 * 1000); // 15 minutes
+export const apiCache = new CacheService<any>(15 * 60 * 1000);
 
-// Score matrix cache (very long TTL - changes rarely)
-export const scoreMatrixCache = new CacheService(6 * 60 * 60 * 1000); // 6 hours
+// Score matrix cache (very long TTL)
+export const scoreMatrixCache = new CacheService<any>(6 * 60 * 60 * 1000);
