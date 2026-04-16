@@ -57,7 +57,7 @@ export function SeasonPredictorPage({ fixtures, teams, actualPoints, initialData
     )
   }
 
-  console.log("DEBUG:", {fixtures: typeof fixtures, teams: teams && teams.length, initialData: typeof initialData, actualPoints: typeof actualPoints, data: typeof data}); if (!data) {
+  console.log("DEBUG: fixtures=", fixtures?.length, "teams=", teams?.length, "initialData=", Object.keys(initialData || {}).length); if (!data) {
     return (
       <div className="rounded-xl bg-white dark:bg-neutral-900 p-6 shadow-lg text-center text-neutral-500">
         Keine Daten verfügbar
