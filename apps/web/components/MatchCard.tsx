@@ -50,6 +50,11 @@ function ProbBar({ homeProb, drawProb, awayProb, locale = 'de' }: { homeProb: nu
   const d = Math.round(drawProb * 100);
   const a = Math.round(awayProb * 100);
 
+  // Determine if home or away is more likely to set the label
+  const isAwayMoreLikely = awayProb > homeProb;
+  const probabilityLabel = isAwayMoreLikely ? t.away : t.home;
+  const probabilityValue = isAwayMoreLikely ? a : h;
+
   return (
     <div className="mt-3">
       <div className="flex text-xs text-slate-400 justify-between mb-1">
@@ -76,11 +81,11 @@ function ConfidenceHeatbar({ confidence, locale = 'de' }: { confidence: number; 
   const t = translations[locale] || translations['de'];
   const pct = Math.round(confidence);
   
-  // Color based on confidence level
+  // Color based on confidence level: <40% red, 40-60% yellow, >60% green
   let color = 'bg-red-500';
-  let label = 'Unsicher';
-  if (pct >= 60) { color = 'bg-yellow-500'; label = locale === 'en' ? 'Medium' : locale === 'tr' ? 'Orta' : 'Mittel'; }
-  if (pct >= 75) { color = 'bg-green-500'; label = locale === 'en' ? 'Confident' : locale === 'tr' ? 'Güvenli' : 'Sicher'; }
+  let label = locale === 'en' ? 'Low' : locale === 'tr' ? 'Düşük' : 'Niedrig';
+  if (pct >= 40) { color = 'bg-yellow-500'; label = locale === 'en' ? 'Medium' : locale === 'tr' ? 'Orta' : 'Mittel'; }
+  if (pct > 60) { color = 'bg-green-500'; label = locale === 'en' ? 'High' : locale === 'tr' ? 'Yüksek' : 'Hoch'; }
   
   return (
     <div className="mt-2 flex items-center gap-2">
@@ -104,7 +109,7 @@ export default function MatchCard({ match, prediction, locale = 'de' }: Props) {
   const outcomeLabel = prediction?.predictedOutcome === 'HOME' ? t.home : prediction?.predictedOutcome === 'DRAW' ? t.draw : prediction?.predictedOutcome === 'AWAY' ? t.away : '';
 
   return (
-    <Link href={`/match/${match.id}`} className="card block p-4 hover:border-green-500/50 transition-colors">
+    <Link href={`/match/${match.id}`} className="card block p-4 hover:border-green-500/50 transition-colors border-neutral-700">
       <div className="flex justify-between items-center text-xs mb-2">
         <span className={leagueColors[match.leagueId] || 'text-slate-400'}>{match.leagueName}</span>
         <span className="text-slate-500">{dateStr} · {timeStr}</span>
@@ -114,17 +119,17 @@ export default function MatchCard({ match, prediction, locale = 'de' }: Props) {
           <div className="font-bold text-white text-lg">{match.homeTeam.shortName}</div>
           <FormBadge form={match.homeTeam.form || 'DDDDD'} locale={locale} />
         </div>
-        <div className="text-slate-500 px-4 text-xl">vs</div>
+        <div className="text-slate-500 px-4 text-lg">vs</div>
         <div className="text-center flex-1">
           <div className="font-bold text-white text-lg">{match.awayTeam.shortName}</div>
           <FormBadge form={match.awayTeam.form || 'DDDDD'} locale={locale} />
         </div>
       </div>
       {prediction && (
-        <div className="mt-3 pt-3 border-t border-slate-700">
+        <div className="mt-3 pt-3 border-t border-neutral-700">
           <div className="text-center">
             <span className="text-sm font-medium text-green-400">{outcomeLabel}</span>
-            <span className="text-xs text-slate-500 ml-2">({Math.round(prediction.confidence)}% {t.home.toLowerCase()})</span>
+            <span className="text-xs text-slate-500 ml-2">({Math.round(prediction.confidence)}%)</span>
           </div>
           <ProbBar homeProb={prediction.homeWinProbability} drawProb={prediction.drawProbability} awayProb={prediction.awayWinProbability} locale={locale} />
           <ConfidenceHeatbar confidence={prediction.confidence} locale={locale} />
