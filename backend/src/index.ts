@@ -41,3 +41,8 @@ app.listen(PORT, () => {
 });
 
 export default app;
+
+// Health check route
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
