@@ -56,10 +56,10 @@ export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
                 xP: <span className="font-mono text-neutral-700 dark:text-neutral-300 font-medium">{d.xp.toFixed(1)}</span>
               </p>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Meister: <span className="font-mono text-green-600 dark:text-green-400 font-medium">{(d.first / 1000).toFixed(1)}%</span>
+                Meister: <span className="font-mono text-green-600 dark:text-green-400 font-medium">{(d.championProb / 1000).toFixed(1)}%</span>
               </p>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Abstieg: <span className="font-mono text-red-500 dark:text-red-400 font-medium">{(d.relegation / 1000).toFixed(1)}%</span>
+                Abstieg: <span className="font-mono text-red-500 dark:text-red-400 font-medium">{(d.relegationProb / 1000).toFixed(1)}%</span>
               </p>
               {delta !== null && (
                 <p className={`font-mono font-medium ${delta >= 0 ? 'text-green-600' : 'text-red-500'}`}>

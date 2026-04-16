@@ -33,7 +33,7 @@ interface UseSeasonPredictorResult {
   data: Record<string, SeasonResult> | null;
   loading: boolean;
   progress: number;
-  error: string | null;
+  error: string | null; reRun?: () => void;
 }
 
 export function useSeasonPredictor(

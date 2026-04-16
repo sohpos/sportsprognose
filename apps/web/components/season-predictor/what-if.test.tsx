@@ -60,7 +60,7 @@ const simulateWhatIf = (
         {
           ...data,
           xp: Math.round(data.xp * multiplier),
-          championProb: result === 'win' && id === teamId ? Math.round(data.first * 1.2) : data.first,
+          championProb: result === 'win' && id === teamId ? Math.round(data.championProb * 1.2) : data.championProb,
         }
       ]
     })
@@ -75,14 +75,14 @@ describe('What-If Engine', () => {
       const result = simulateWhatIf(originalData, '1', 2, 'win')
       
       expect(result['1'].xp).toBeGreaterThan(originalData['1'].xp)
-      expect(result['1'].first).toBeGreaterThan(originalData['1'].first)
+      expect(result['1'].championProb).toBeGreaterThan(originalData['1'].championProb)
     })
 
     it('calculates draw scenario correctly', () => {
       const result = simulateWhatIf(originalData, '1', 2, 'draw')
       
       expect(result['1'].xp).toBeGreaterThan(originalData['1'].xp)
-      expect(result['1'].first).toBeLessThan(originalData['1'].first) // less than win
+      expect(result['1'].championProb).toBeLessThan(originalData['1'].championProb) // less than win
     })
 
     it('calculates loss scenario correctly', () => {
@@ -226,7 +226,7 @@ describe('What-If Engine', () => {
       const projectedData = simulateWhatIf(originalData, '1', 2, 'win')
       
       expect(projectedData['1'].xp).toBeDefined()
-      expect(projectedData['1'].first).toBeDefined()
+      expect(projectedData['1'].championProb).toBeDefined()
     })
   })
 
@@ -246,14 +246,14 @@ describe('What-If Engine', () => {
       const result = simulateWhatIf(originalData, '1', 2, 'win')
       
       // Bayern's championship probability should increase
-      expect(result['1'].first).toBeGreaterThan(originalData['1'].first)
+      expect(result['1'].championProb).toBeGreaterThan(originalData['1'].championProb)
     })
 
     it('shifts relegation probability for affected teams', () => {
       const result = simulateWhatIf(originalData, '1', 2, 'win')
       
       // Dortmund or Leverkusen might have increased relegation risk
-      expect(result['2'].relegation).toBeGreaterThanOrEqual(originalData['2'].relegation)
+      expect(result['2'].relegationProb).toBeGreaterThanOrEqual(originalData['2'].relegationProb)
     })
   })
 })
