@@ -1,3 +1,5 @@
+use client
+
 type TeamInsightCardProps = {
   team: { id: string; name: string; logo?: string }
   data: {
