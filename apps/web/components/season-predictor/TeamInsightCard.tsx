@@ -24,7 +24,7 @@ export function TeamInsightCard({ team, data, compact = false }: TeamInsightCard
       return sum + prob * Math.pow(pos + 1 - mean, 2)
     }, 0)
   ) : 0
-  
+
   const xp = data?.xp ?? 0
   const actual = data?.actualPoints
   const delta = actual !== undefined ? actual - xp : null
@@ -79,7 +79,7 @@ export function TeamInsightCard({ team, data, compact = false }: TeamInsightCard
         </div>
         <div className="space-y-3">
           {consistency !== null && Metric(label="Consistency" value={consistency.toFixed(2)})}
-          {volatility > 0 && Metric(label="Volatility" value={`±${volatility.toFixed(1)}`} />
+          {volatility > 0 && Metric(label="Volatility" value={`±${volatility.toFixed(1)}`} />}
         </div>
       </div>
     </div>
