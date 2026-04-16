@@ -1,10 +1,10 @@
 type TeamSummaryGridProps = {
   data: Record<string, {
-    xp: number | string
-    championProb: number | string
-    relegationProb: number | string
+    xp: number
+    championProb: number
+    relegationProb: number
     distribution: number[]
-    actualPoints?: number | string
+    actualPoints?: number
     goalsFor?: number
     goalsAgainst?: number
     xG?: number
@@ -18,7 +18,7 @@ type TeamSummaryGridProps = {
 
 export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
   const rows = teams
-
+  
   if (rows.length === 0) {
     return (
       <div className="rounded-xl bg-white dark:bg-neutral-900 p-6 shadow text-center text-neutral-500">
@@ -32,13 +32,9 @@ export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
       {rows.map((t) => {
         const d = data[t.id]
         if (!d) return null
-
-        const xp = Number(d.xp)
-        const championProb = Number(d.championProb)
-        const relegationProb = Number(d.relegationProb)
-        const actual = d.actualPoints !== undefined ? Number(d.actualPoints) : null
-        const delta = actual !== null ? actual - xp : null
-
+        
+        const delta = d.actualPoints !== undefined ? d.actualPoints - d.xp : null
+        
         return (
           <div
             key={t.id}
@@ -47,48 +43,27 @@ export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
             {/* Team header with logo */}
             <div className="flex items-center gap-1.5 mb-2 min-w-0">
               {t.logo && (
-                <img
-                  src={t.logo}
-                  alt=""
-                  className="w-4 h-4 rounded-sm object-contain flex-shrink-0"
-                />
+                <img src={t.logo} alt="" className="w-4 h-4 rounded-sm object-contain flex-shrink-0" />
               )}
               <h3 className="font-semibold text-sm text-neutral-800 dark:text-neutral-200 truncate">
                 {t.name}
               </h3>
             </div>
-
+            
             {/* Stats */}
             <div className="space-y-1 text-xs">
               <p className="text-neutral-500 dark:text-neutral-400">
-                xP:{' '}
-                <span className="font-mono text-neutral-700 dark:text-neutral-300 font-medium">
-                  {xp.toFixed(1)}
-                </span>
+                xP: <span className="font-mono text-neutral-700 dark:text-neutral-300 font-medium">{((typeof d.xp === "number" ? d.xp : 0)).toFixed(1)}</span>
               </p>
-
               <p className="text-neutral-500 dark:text-neutral-400">
-                Meister:{' '}
-                <span className="font-mono text-green-600 dark:text-green-400 font-medium">
-                  {(championProb / 1000).toFixed(1)}%
-                </span>
+                Meister: <span className="font-mono text-green-600 dark:text-green-400 font-medium">{((typeof d.championProb === "number" ? d.championProb : 0) / 1000).toFixed(1)}%</span>
               </p>
-
               <p className="text-neutral-500 dark:text-neutral-400">
-                Abstieg:{' '}
-                <span className="font-mono text-red-500 dark:text-red-400 font-medium">
-                  {(relegationProb / 1000).toFixed(1)}%
-                </span>
+                Abstieg: <span className="font-mono text-red-500 dark:text-red-400 font-medium">{((typeof d.relegationProb === "number" ? d.relegationProb : 0) / 1000).toFixed(1)}%</span>
               </p>
-
               {delta !== null && (
-                <p
-                  className={`font-mono font-medium ${
-                    delta >= 0 ? 'text-green-600' : 'text-red-500'
-                  }`}
-                >
-                  Δ {delta >= 0 ? '+' : ''}
-                  {delta.toFixed(1)}
+                <p className={`font-mono font-medium ${delta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  Δ {delta >= 0 ? '+' : ''}{delta.toFixed(1)}
                 </p>
               )}
             </div>
