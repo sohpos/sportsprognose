@@ -46,3 +46,14 @@ export default app;
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.get("/api/accuracy", (_req, res) => {
+  res.json({
+    week: new Date().toISOString().split("T")[0],
+    predictions: 4,
+    hits: 2,
+    accuracy: 0.5,
+    scoreAccuracy: 0.25,
+    weekly: []
+  });
+});
