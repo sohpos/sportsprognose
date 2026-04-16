@@ -150,13 +150,13 @@ export function generateMatchData() {
       homeTeam: {
         id: home.id,
         name: home.name,
-        shortName: home.shortName,
+        shortName: home.short,
         logo: home.logo,
       },
       awayTeam: {
         id: away.id,
         name: away.name,
-        shortName: away.shortName,
+        shortName: away.short,
         logo: away.logo,
       },
       // Prediction results
