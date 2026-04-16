@@ -8,18 +8,19 @@ type SeasonChancesProps = {
 };
 
 const formatPct = (prob: number): string => {
-  const pct = prob * 100;
+  const pct = prob * 100; // prob ist jetzt 0–1
   return pct >= 0.1 ? pct.toFixed(1) + '%' : '<0.1%';
 };
 
 export const SeasonChances = memo<SeasonChancesProps>(({ data, teams }) => {
   if (!data) return null;
+
   const championship = teams
     .map((t: any) => ({
       id: t.id,
       name: t.name,
       logo: t.logo,
-      prob: (data?.[t.id]?.championProb ?? 0) ?? 0,
+      prob: Number(data?.[t.id]?.championProb ?? 0) / 1000, // 🔥 FIX
     }))
     .filter((t: any) => t.prob > 0)
     .sort((a: any, b: any) => b.prob - a.prob);
@@ -29,13 +30,14 @@ export const SeasonChances = memo<SeasonChancesProps>(({ data, teams }) => {
       id: t.id,
       name: t.name,
       logo: t.logo,
-      prob: data[t.id]?.relegationProb ?? 0,
+      prob: Number(data?.[t.id]?.relegationProb ?? 0) / 1000, // 🔥 FIX
     }))
     .filter((t: any) => t.prob > 0)
     .sort((a: any, b: any) => a.prob - b.prob);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Meisterschaft */}
       <div className="rounded-xl bg-neutral-900/80 p-4 border border-neutral-800">
         <h2 className="text-sm font-bold mb-3 text-neutral-300">🏆 Meisterschaft</h2>
         <div className="space-y-1 text-sm max-h-96 overflow-y-auto">
@@ -56,6 +58,7 @@ export const SeasonChances = memo<SeasonChancesProps>(({ data, teams }) => {
         </div>
       </div>
 
+      {/* Abstieg */}
       <div className="rounded-xl bg-neutral-900/80 p-4 border border-neutral-800">
         <h2 className="text-sm font-bold mb-3 text-neutral-300">📉 Abstieg</h2>
         <div className="space-y-1 text-sm max-h-96 overflow-y-auto">
@@ -72,7 +75,11 @@ export const SeasonChances = memo<SeasonChancesProps>(({ data, teams }) => {
                     {t.logo && <img src={t.logo} alt="" className="w-4 h-4 rounded-sm object-contain flex-shrink-0" />}
                     <span className="text-neutral-300 truncate text-xs">{t.name}</span>
                   </div>
-                  <span className={`font-mono font-medium text-xs ${isHighRisk ? 'text-red-500' : isMediumRisk ? 'text-yellow-500' : 'text-green-400'}`}>
+                  <span
+                    className={`font-mono font-medium text-xs ${
+                      isHighRisk ? 'text-red-500' : isMediumRisk ? 'text-yellow-500' : 'text-green-400'
+                    }`}
+                  >
                     {formatPct(t.prob)}
                   </span>
                 </div>
