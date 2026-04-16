@@ -17,7 +17,7 @@ type TeamSummaryGridProps = {
 }
 
 export function TeamSummaryGrid({ data, teams }: TeamSummaryGridProps) {
-  const rows = teams.filter(t => data[t.id]?.xp >= 0 || !data[t.id])
+  const rows = teams
   
   if (rows.length === 0) {
     return (
