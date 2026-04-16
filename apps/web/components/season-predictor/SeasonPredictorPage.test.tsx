@@ -27,9 +27,9 @@ const mockFixtures = [
 ]
 
 const mockData = {
-  '1': { xp: 72, first: 35000, relegation: 100, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 35000 : 0) },
-  '2': { xp: 65, first: 15000, relegation: 500, distribution: Array(18).fill(0).map((_, i) => i === 1 ? 15000 : 0) },
-  '3': { xp: 60, first: 8000, relegation: 2000, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 8000 : 0) }
+  '1': { xp: 72, championProb: 35000, relegationProb: 100, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 35000 : 0) },
+  '2': { xp: 65, championProb: 15000, relegationProb: 500, distribution: Array(18).fill(0).map((_, i) => i === 1 ? 15000 : 0) },
+  '3': { xp: 60, championProb: 8000, relegationProb: 2000, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 8000 : 0) }
 }
 
 describe('SeasonPredictorPage', () => {

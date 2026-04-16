@@ -30,16 +30,16 @@ const mockFixtures = [
 
 // Original data before what-if
 const originalData = {
-  '1': { xp: 72, first: 35000, relegation: 100, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 35000 : 0) },
-  '2': { xp: 65, first: 15000, relegation: 500, distribution: Array(18).fill(0).map((_, i) => i === 1 ? 15000 : 0) },
-  '3': { xp: 60, first: 8000, relegation: 2000, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 8000 : 0) }
+  '1': { xp: 72, championProb: 35000, relegationProb: 100, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 35000 : 0) },
+  '2': { xp: 65, championProb: 15000, relegationProb: 500, distribution: Array(18).fill(0).map((_, i) => i === 1 ? 15000 : 0) },
+  '3': { xp: 60, championProb: 8000, relegationProb: 2000, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 8000 : 0) }
 }
 
 // Simulated "what-if" data (Bayern wins next match)
 const whatIfData = {
-  '1': { xp: 75, first: 42000, relegation: 50, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 42000 : 0) },
-  '2': { xp: 63, first: 12000, relegation: 800, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 12000 : 0) },
-  '3': { xp: 58, first: 5000, relegation: 3000, distribution: Array(18).fill(0).map((_, i) => i === 3 ? 5000 : 0) }
+  '1': { xp: 75, championProb: 42000, relegationProb: 50, distribution: Array(18).fill(0).map((_, i) => i === 0 ? 42000 : 0) },
+  '2': { xp: 63, championProb: 12000, relegationProb: 800, distribution: Array(18).fill(0).map((_, i) => i === 2 ? 12000 : 0) },
+  '3': { xp: 58, championProb: 5000, relegationProb: 3000, distribution: Array(18).fill(0).map((_, i) => i === 3 ? 5000 : 0) }
 }
 
 // What-If Engine simulation function
@@ -60,7 +60,7 @@ const simulateWhatIf = (
         {
           ...data,
           xp: Math.round(data.xp * multiplier),
-          first: result === 'win' && id === teamId ? Math.round(data.first * 1.2) : data.first,
+          championProb: result === 'win' && id === teamId ? Math.round(data.first * 1.2) : data.first,
         }
       ]
     })

@@ -15,8 +15,8 @@ type SeasonPredictorPageProps = {
   actualPoints?: Record<string, number>
   initialData?: Record<string, {
     xp: number
-    first: number
-    relegation: number
+    championProb: number
+    relegationProb: number
     distribution: number[]
     goalsFor?: number
     goalsAgainst?: number

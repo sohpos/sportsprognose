@@ -1,8 +1,8 @@
 type SeasonXPTableProps = {
   data: Record<string, {
     xp: number
-    first: number
-    relegation: number
+    championProb: number
+    relegationProb: number
     distribution: number[]
   }>
   teams: { id: string; name: string; logo?: string }[]
@@ -18,8 +18,8 @@ export function SeasonXPTable({ data, teams }: SeasonXPTableProps) {
     name: t.name,
     logo: t.logo,
     xp: data[t.id]?.xp ?? 0,
-    first: data[t.id]?.first ?? 0,
-    relegation: data[t.id]?.relegation ?? 0,
+    championProb: data[t.id]?.first ?? 0,
+    relegationProb: data[t.id]?.relegation ?? 0,
   })).filter(r => r.xp > 0)
 
   if (rows.length === 0) {

@@ -1,8 +1,8 @@
 type TeamSummaryGridProps = {
   data: Record<string, {
     xp: number
-    first: number
-    relegation: number
+    championProb: number
+    relegationProb: number
     distribution: number[]
     actualPoints?: number
     goalsFor?: number

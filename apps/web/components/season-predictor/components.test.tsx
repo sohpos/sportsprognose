@@ -19,9 +19,9 @@ const mockTeams = [
 ]
 
 const mockData = {
-  '1': { xp: 72.5, first: 35000, relegation: 100, distribution: Array(18).fill(0) },
-  '2': { xp: 65.2, first: 15000, relegation: 500, distribution: Array(18).fill(0) },
-  '3': { xp: 60.8, first: 8000, relegation: 2000, distribution: Array(18).fill(0) }
+  '1': { xp: 72.5, championProb: 35000, relegationProb: 100, distribution: Array(18).fill(0) },
+  '2': { xp: 65.2, championProb: 15000, relegationProb: 500, distribution: Array(18).fill(0) },
+  '3': { xp: 60.8, championProb: 8000, relegationProb: 2000, distribution: Array(18).fill(0) }
 }
 
 describe('SeasonXPTable', () => {
