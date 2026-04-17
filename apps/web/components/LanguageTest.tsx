@@ -287,7 +287,7 @@ export default function LanguageTest() {
             </div>
           </div>
           {/* Form breakdown */}
-          <div className="flex justify-center gap-4 mt-2 pt-2 border-t border-slate-700">
+          <div className="flex justify-center gap-4 mt-2 pt-2 border-t var(--border-light)">
             <span className="text-green-400 text-xs">S:{wins}</span>
             <span className="text-yellow-400 text-xs">U:{draws}</span>
             <span className="text-red-400 text-xs">N:{losses}</span>
@@ -307,7 +307,7 @@ export default function LanguageTest() {
                 <span className="text-orange-400">λ {(Math.random() * 3 + 1).toFixed(1)}</span>
               </div>
             ))}
-            <div className="pt-2 border-t border-slate-700 text-xs text-secondary text-center">
+            <div className="pt-2 border-t var(--border-light) text-xs text-secondary text-center">
               Mehr auf der Predictor‑Page →
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function LanguageTest() {
           <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">{t.accuracyTitle}</h3>
           <div className="flex gap-6 mb-5">
             <div>
-              <div className="text-3xl font-bold" style={{ color: '#00e676' }}>
+              <div className="text-3xl font-bold" style={{ color: 'var(--accent-green)' }}>
                 {Math.round(stats.reduce((s, st) => s + st.outcomeAccuracy, 0) / stats.length)}%
               </div>
               <div className="text-xs text-secondary">{t.avgAccuracy}</div>
@@ -330,7 +330,7 @@ export default function LanguageTest() {
               <div className="text-xs text-secondary">{t.exactScore}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-slate-300">{stats[0].totalPredictions}</div>
+              <div className="text-3xl font-bold var(--text-primary)">{stats[0].totalPredictions}</div>
               <div className="text-xs text-secondary">{t.predictionsThisWeek}</div>
             </div>
           </div>
@@ -339,12 +339,12 @@ export default function LanguageTest() {
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full rounded-t transition-all" style={{
                   height: `${(s.outcomeAccuracy / 100) * 60}px`,
-                  backgroundColor: s.outcomeAccuracy >= 65 ? '#00e676' : s.outcomeAccuracy >= 55 ? '#2979ff' : '#f87171',
+                  backgroundColor: s.outcomeAccuracy >= 65 ? 'var(--accent-green)' : s.outcomeAccuracy >= 55 ? 'var(--accent-blue)' : 'var(--accent-red)',
                 }} />
               </div>
             ))}
           </div>
-          <div className="text-[10px] text-slate-600 mt-1 text-center">{t.weeks}</div>
+          <div className="text-[10px] var(--text-tertiary) mt-1 text-center">{t.weeks}</div>
         </div>
       )}
 
@@ -383,7 +383,7 @@ export default function LanguageTest() {
                   </div>
                 </div>
                 {predictions[match.id] && (
-                  <div className="mt-3 pt-3 border-t border-slate-700">
+                  <div className="mt-3 pt-3 border-t var(--border-light)">
                     <div className="text-xs text-secondary mb-2">{t.confidence}: {Math.round(predictions[match.id].confidence)}%</div>
                     <div className="flex text-xs text-secondary justify-between mb-1">
                       <span className="text-green-400">{Math.round((predictions[match.id].homeWinProbability || 0) * 100)}%</span>
@@ -392,7 +392,7 @@ export default function LanguageTest() {
                     </div>
                     <div className="flex h-1.5 rounded-full overflow-hidden gap-0.5">
                       <div className="bg-green-500 rounded-l-full" style={{ width: `${(predictions[match.id].homeWinProbability || 0) * 100}%` }} />
-                      <div className="bg-slate-500" style={{ width: `${(predictions[match.id].drawProbability || 0) * 100}%` }} />
+                      <div className="var(--bg-hover)" style={{ width: `${(predictions[match.id].drawProbability || 0) * 100}%` }} />
                       <div className="bg-blue-500 rounded-r-full" style={{ width: `${(predictions[match.id].awayWinProbability || 0) * 100}%` }} />
                     </div>
                     <div className="flex text-[10px] text-secondary justify-between mt-1">
@@ -401,7 +401,7 @@ export default function LanguageTest() {
                       <span>{t.probAway}</span>
                     </div>
                     {/* Over/Under and BTTS */}
-                    <div className="mt-2 pt-2 border-t border-slate-800 grid grid-cols-2 gap-1 text-xs">
+                    <div className="mt-2 pt-2 border-t var(--border-strong) grid grid-cols-2 gap-1 text-xs">
                       <span className="text-orange-400">O 1.5: {Math.round((predictions[match.id].over15Probability || 0) * 100)}%</span>
                       <span className="text-orange-400">O 2.5: {predictions[match.id] ? Math.round((predictions[match.id].over25Probability || 0) * 100) : 0}%</span>
                       <span className="text-orange-400">O 3.5: {Math.round((predictions[match.id].over35Probability || 0) * 100)}%</span>
@@ -409,7 +409,7 @@ export default function LanguageTest() {
                       <span className="text-pink-400 col-span-2">BTTS: {Math.round((predictions[match.id].bttsProbability || 0) * 100)}%</span>
                       {/* Value Bets */}
                       {predictions[match.id]?.valueBets && (
-                        <div className="col-span-2 mt-1 pt-1 border-t border-slate-700">
+                        <div className="col-span-2 mt-1 pt-1 border-t var(--border-light)">
                           <div className="text-[10px] text-yellow-400 mb-1">💎 Value Bets</div>
                           {predictions[match.id]?.valueBets?.home?.hasValue && (
                             <span className="text-green-400">Home +{predictions[match.id]?.valueBets?.home?.edge}%</span>
@@ -484,14 +484,14 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
       </button>
       
       {showH2h && (
-        <div className="mt-2 p-2 bg-slate-800 rounded text-xs w-full">
+        <div className="mt-2 p-2 var(--bg-hover) rounded text-xs w-full">
           <div className="text-secondary mb-1">Head-to-Head (letzte Spiele)</div>
           {h2hData.length === 0 ? (
             <div className="text-secondary">Keine H2H-Daten verfügbar</div>
           ) : (
           <div className="flex flex-col gap-1">
           {h2hData.map((m, i) => (
-            <div key={i} className="flex justify-between text-slate-300 w-full">
+            <div key={i} className="flex justify-between var(--text-primary) w-full">
               <span className="truncate">{m.homeTeam}</span>
               <span className="font-bold whitespace-nowrap">{m.homeGoals} - {m.awayGoals}</span>
               <span className="truncate text-right">{m.awayTeam}</span>
@@ -509,14 +509,14 @@ function ScoreMatrix({ prediction, match, t }: { prediction: any; match: any; t:
               <tr>
                 <th className="p-1"></th>
                 {Array.from({ length: maxGoals + 1 }).map((_, a) => (
-                  <th key={a} className="p-1 bg-slate-700 text-slate-300">{a}</th>
+                  <th key={a} className="p-1 var(--bg-card) var(--text-primary)">{a}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {Array.from({ length: maxGoals + 1 }).map((_, h) => (
                 <tr key={h}>
-                  <th className="p-1 bg-slate-700 text-slate-300">{h}</th>
+                  <th className="p-1 var(--bg-card) var(--text-primary)">{h}</th>
                   {Array.from({ length: maxGoals + 1 }).map((_, a) => {
                     const cell = matrix.find((s: any) => s.homeGoals === h && s.awayGoals === a);
                     const prob = cell?.probability || 0;
