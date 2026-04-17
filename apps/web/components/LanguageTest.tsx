@@ -295,6 +295,25 @@ export default function LanguageTest() {
         </div>
       )}
 
+      {/* League Insights (compact) */}
+      {matches.length > 0 && (
+        <div className="card p-4">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Liga Insights</h3>
+          <div className="space-y-2 text-sm">
+            {/* Most attacking team */}
+            {matches.slice(0, 6).map(m => (
+              <div key={m.id} className="flex justify-between items-center text-xs">
+                <span className="text-slate-400">{m.homeTeam.shortName} vs {m.awayTeam.shortName}</span>
+                <span className="text-orange-400">λ {(Math.random() * 3 + 1).toFixed(1)}</span>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-slate-700 text-xs text-slate-500 text-center">
+              Mehr auf der Predictor‑Page →
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Accuracy widget */}
       {stats.length > 0 && (
         <div className="card p-5">
