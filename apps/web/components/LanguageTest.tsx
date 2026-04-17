@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { GameOfTheDayCard } from '@/components/GameOfTheDayCard';
+import { ValueBetBadge } from '@/components/ValueBetBadge';
 
 const translations: Record<string, Record<string, any>> = {
   de: { 
@@ -243,6 +245,9 @@ export default function LanguageTest() {
           <div className="text-xs text-slate-500">Poisson</div>
         </div>
       </div>
+
+      {/* Game of the Day - Hero Widget */}
+      <GameOfTheDayCard locale={locale} />
 
       {/* Accuracy widget */}
       {stats.length > 0 && (
