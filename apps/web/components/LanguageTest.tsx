@@ -217,6 +217,11 @@ export default function LanguageTest() {
     CL: 'text-yellow-400',
   };
 
+  // Derived values for League Pulse
+  const uniqueLeagueCount = matches.length > 0 
+    ? matches.map(m => m.leagueId).filter((v, i, a) => a.indexOf(v) === i).length 
+    : 0;
+
   return (
     <div className="space-y-8">
       {/* Hero */}
@@ -248,6 +253,27 @@ export default function LanguageTest() {
 
       {/* Game of the Day - Hero Widget */}
       <GameOfTheDayCard locale={locale} />
+
+      {/* League Pulse - Quick Stats */}
+      {matches.length > 0 && (
+        <div className="card p-4">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Liga‑Pulse</h3>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <div className="text-lg font-bold text-blue-400">{matches.length}</div>
+              <div className="text-[10px] text-slate-500">Spiele</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-blue-400">{uniqueLeagueCount}</div>
+              <div className="text-[10px] text-slate-500">Ligen</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-purple-400">{Object.keys(predictions).length}</div>
+              <div className="text-[10px] text-slate-500">Prognosen</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Accuracy widget */}
       {stats.length > 0 && (
