@@ -19,7 +19,15 @@ const config: Config = {
         accent: {
           green: '#00e676',
           blue: '#2979ff',
+          red: '#f87171',
+          yellow: '#fbbf24',
+          purple: '#a78bfa',
+          orange: '#fb923c',
+          cyan: '#22d3ee',
         },
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       },
     },
   },

@@ -4,17 +4,36 @@
 
 /* Root Theme Variables */
 :root {
+  /* Backgrounds */
   --bg-primary: #0a0e1a;
   --bg-secondary: #0f1629;
   --bg-card: #151e35;
+  --bg-hover: #1c2845;
+  --bg-elevated: #1e2a45;
+  
+  /* Text */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  
+  /* Borders */
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  
+  /* Accents */
   --accent-green: #00e676;
   --accent-blue: #2979ff;
+  --accent-red: #f87171;
+  --accent-yellow: #fbbf24;
+  --accent-purple: #a78bfa;
+  --accent-orange: #fb923c;
+  --accent-cyan: #22d3ee;
 }
 
 /* Global Body Styling */
 body {
   background-color: var(--bg-primary);
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -22,8 +41,14 @@ body {
 /* Card Component */
 .card {
   background-color: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-light);
   border-radius: 12px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-strong);
 }
 
 /* Gradient Text Utility */
@@ -33,3 +58,16 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Utility Classes for Consistency */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-card { background-color: var(--bg-card); }
+.bg-hover { background-color: var(--bg-hover); }
+
+.border-light { border-color: var(--border-light); }
+.border-strong { border-color: var(--border-strong); }
