@@ -221,6 +221,16 @@ export default function LanguageTest() {
   const uniqueLeagueCount = matches.length > 0 
     ? matches.map(m => m.leagueId).filter((v, i, a) => a.indexOf(v) === i).length 
     : 0;
+  
+  // Form trend: count W/D/L from recent matches
+  const recentForms = matches.slice(0, 6).flatMap(m => [
+    m.homeTeam.form || '', 
+    m.awayTeam.form || ''
+  ]).join('');
+  const wins = (recentForms.match(/W/g) || []).length;
+  const draws = (recentForms.match(/D/g) || []).length;
+  const losses = (recentForms.match(/L/g) || []).length;
+  const formTrend = wins > losses ? '📈' : wins === losses ? '➡️' : '📉';
 
   return (
     <div className="space-y-8">
@@ -258,7 +268,7 @@ export default function LanguageTest() {
       {matches.length > 0 && (
         <div className="card p-4">
           <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Liga‑Pulse</h3>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-4 gap-3 text-center">
             <div>
               <div className="text-lg font-bold text-blue-400">{matches.length}</div>
               <div className="text-[10px] text-slate-500">Spiele</div>
@@ -271,6 +281,16 @@ export default function LanguageTest() {
               <div className="text-lg font-bold text-purple-400">{Object.keys(predictions).length}</div>
               <div className="text-[10px] text-slate-500">Prognosen</div>
             </div>
+            <div>
+              <div className="text-lg">{formTrend}</div>
+              <div className="text-[10px] text-slate-500">Trend</div>
+            </div>
+          </div>
+          {/* Form breakdown */}
+          <div className="flex justify-center gap-4 mt-2 pt-2 border-t border-slate-700">
+            <span className="text-green-400 text-xs">S:{wins}</span>
+            <span className="text-yellow-400 text-xs">U:{draws}</span>
+            <span className="text-red-400 text-xs">N:{losses}</span>
           </div>
         </div>
       )}
